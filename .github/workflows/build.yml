@@ -1,0 +1,25 @@
+name: build
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        arch: [ "rpi5_64" ]
+
+    env:
+      ARCH: ${{ matrix.arch }}
+
+    steps:
+      - name: Run a multi-line script
+        run: |
+          echo "ARCH=$ARCH"
+          git clone --recurse-submodules https://gitlab.com/recalbox/recalbox.git recalbox-${ARCH}
+          cd recalbox-${ARCH}
+          ./scripts/linux/recaldocker.sh
