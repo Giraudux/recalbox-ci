@@ -24,7 +24,7 @@ jobs:
       RECALBOX_VERSION: ${{ matrix.arch }}
       WORKDIR: ${{ github.workspace }}/recalbox
       OUTPUTDIR: ${{ github.workspace }}/output
-      CCACHE: true
+      CCACHE: false
 
     steps:
 
@@ -55,8 +55,8 @@ jobs:
 
     - run: |
         mkdir -p "${OUTPUTDIR}"
+        cd "${WORKDIR}"
         docker run --rm --tmpfs /tmp:exec --security-opt seccomp=unconfined \
-          -w "${WORKDIR}" \
           -v "${WORKDIR}:/work" \
           -v "${OUTPUTDIR}:/work/output" \
           -v "/recalbox-builds/dl:/share/dl" \
