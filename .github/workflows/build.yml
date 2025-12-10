@@ -24,6 +24,8 @@ jobs:
       RECALBOX_VERSION: ${{ matrix.arch }}
       WORKDIR: ${{ github.workspace }}/recalbox
       OUTPUTDIR: ${{ github.workspace }}/output
+      DL: ${{ github.workspace }}/dl
+      HOST: ${{ github.workspace }}/host
       CCACHE: false
 
     steps:
@@ -54,14 +56,14 @@ jobs:
     - run: df -h
 
     - run: |
-        mkdir -p "${OUTPUTDIR}"
+        mkdir -p "${OUTPUTDIR}" "${DL}" "${HOST}"
         cd "${WORKDIR}"
         docker run --rm --security-opt seccomp=unconfined \
           -w="${WORKDIR}" \
           -v "${WORKDIR}:${WORKDIR}" \
           -v "${OUTPUTDIR}:/work/output" \
-          -v "${WORKDIR}/dl:/share/dl" \
-          -v "${WORKDIR}/host:/share/host" \
+          -v "${DL}:/share/dl" \
+          -v "${HOST}:/share/host" \
           -v "/${WORKDIR}/ccache-${ARCH}:/share/ccache" \
           -e "ARCH=${ARCH}" \
           -e "RECALBOX_VERSION=${RECALBOX_VERSION}" \
