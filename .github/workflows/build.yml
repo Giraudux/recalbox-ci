@@ -34,11 +34,9 @@ jobs:
       run: |
         git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "${{ github.workspace }}/recalbox"
         cd "${{ github.workspace }}/recalbox"
-        sed --in-place --expression="s/docker build/#docker build/g" ./scripts/linux/recaldocker.sh
+        sed --in-place --expression="s/docker build/# docker build/g" ./scripts/linux/recaldocker.sh
         sed --in-place --expression="s/ -ti / /g" ./scripts/linux/recaldocker.sh
-        cat ./scripts/linux/recaldocker.sh
-        sed --in-place --expression="s/BR2_CCACHE_INITIAL_SETUP=--max-size=.* /BR2_CCACHE_INITIAL_SETUP=--max-size=8G /g" ./Dockerfile
-        cat ./Dockerfile
+        sed --in-place --expression="s/BR2_CCACHE_INITIAL_SETUP=--max-size=[[:alnum:]]*/BR2_CCACHE_INITIAL_SETUP=--max-size=8G/g" ./Dockerfile
         docker build -t "recalbox-dev" .
 
     - run: |
