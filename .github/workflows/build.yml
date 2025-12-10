@@ -32,7 +32,7 @@ jobs:
 
     - run: |
         git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "${WORKDIR}"
-        docker build -t "recalbox-dev" "${WORKDIR}"
+        docker build -t "recalbox-${ARCH}" "${WORKDIR}"
 
     - run: df -h
 
@@ -48,3 +48,5 @@ jobs:
           -e "RECALBOX_CCACHE_ENABLED=${CCACHE}" \
           -e "FORCE_UNSAFE_CONFIGURE=1" \
           "recalbox-${ARCH}"
+
+    - run: df -h
