@@ -26,7 +26,6 @@ jobs:
       OUTPUTDIR: ${{ github.workspace }}/output
       DL: ${{ github.workspace }}/dl
       HOST: ${{ github.workspace }}/host
-      CCACHE: false
 
     steps:
 
@@ -64,10 +63,8 @@ jobs:
           -v "${OUTPUTDIR}:/work/output" \
           -v "${DL}:/share/dl" \
           -v "${HOST}:/share/host" \
-          -v "/${WORKDIR}/ccache-${ARCH}:/share/ccache" \
           -e "ARCH=${ARCH}" \
           -e "RECALBOX_VERSION=${RECALBOX_VERSION}" \
-          -e "RECALBOX_CCACHE_ENABLED=${CCACHE}" \
           -e "FORCE_UNSAFE_CONFIGURE=1" \
           --user="$(id -u):$(id -g)" \
           "recalbox-${ARCH}"
