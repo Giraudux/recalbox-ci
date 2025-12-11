@@ -57,7 +57,7 @@ jobs:
     - run: df -h
 
     - run: |
-        mkdir -p "${OUTPUTDIR}" "${DL}" "${HOST}"
+        mkdir -p "${OUTPUTDIR}" "${CCACHEDIR}" "${DL}" "${HOST}"
         cd "${WORKDIR}"
         docker run --rm --security-opt seccomp=unconfined \
           -w="${WORKDIR}" \
