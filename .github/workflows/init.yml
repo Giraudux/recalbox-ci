@@ -24,7 +24,7 @@ on:
 
 jobs:
 
-  build:
+  init:
 
     runs-on: ubuntu-latest
 
