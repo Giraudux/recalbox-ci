@@ -1,0 +1,50 @@
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        default: '10.0-patron-4'
+        required: true
+        type: string
+      arch:
+        description: 'Architecture'
+        default: 'rpi5_64'
+        required: true
+        type: string
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      WORKDIR: ${{ github.workspace }}/recalbox
+
+    steps:
+    # Clone repo
+    - run: |
+        git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "${{ env.WORKDIR }}"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: workdir-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ env.WORKDIR }}
+        include-hidden-files: true
+    # Build Docker image
+    - run: |
+        docker build --tag "recalbox-${{ inputs.arch }}" "${{ env.WORKDIR }}"
+        docker image save --output "${{ runner.temp }}/recalbox-${{ inputs.arch }}.tar" "recalbox-${{ inputs.arch }}"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: docker-${{ inputs.tag }}-${{ inputs.arch }}
+        path: "${{ runner.temp }}/recalbox-${{ inputs.arch }}.tar"
