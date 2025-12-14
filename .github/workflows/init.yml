@@ -51,6 +51,10 @@ jobs:
     # Create directories
     - run: |
         mkdir --parents "${{ env.OUTPUTDIR }}" "${{ env.CCACHEDIR }}" "${{ env.DL }}" "${{ env.HOST }}"
+        touch "${{ env.OUTPUTDIR }}/.keep"
+        touch "${{ env.CCACHEDIR }}/.keep"
+        touch "${{ env.DL }}/.keep"
+        touch "${{ env.HOST }}/.keep"
     - uses: actions/upload-artifact@v4
       with:
         name: outdir-${{ inputs.tag }}-${{ inputs.arch }}
