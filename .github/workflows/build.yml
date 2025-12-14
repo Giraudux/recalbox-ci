@@ -21,6 +21,7 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
   build:
+    needs: init
     runs-on: ubuntu-latest
     env:
       RECALBOX_VERSION: ${{ inputs.tag }}
