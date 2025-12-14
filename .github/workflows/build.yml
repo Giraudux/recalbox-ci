@@ -73,6 +73,8 @@ jobs:
     # Build
     - run: |
         set -x
+        sudo apt install tree
+        tree -a -L 3
         docker load --input "${{ runner.temp }}/recalbox.tar"
         rm "${{ runner.temp }}/recalbox.tar"
         cd "${{ env.WORKDIR }}"
