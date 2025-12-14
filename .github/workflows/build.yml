@@ -49,18 +49,23 @@ jobs:
     - uses: actions/download-artifact@v5
       with:
         name: workdir-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ env.WORKDIR }}
     - uses: actions/download-artifact@v5
       with:
         name: outdir-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ env.OUTPUTDIR }}
     - uses: actions/download-artifact@v5
       with:
         name: ccachedir-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ env.CCACHEDIR }}
     - uses: actions/download-artifact@v5
       with:
         name: dl-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ env.DL }}
     - uses: actions/download-artifact@v5
       with:
         name: host-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ env.HOST }}
     - uses: actions/download-artifact@v5
       with:
         name: docker-${{ inputs.tag }}-${{ inputs.arch }}
@@ -68,7 +73,6 @@ jobs:
     # Build
     - run: |
         set -x
-        ls -a
         docker load --input "${{ runner.temp }}/recalbox.tar"
         rm "${{ runner.temp }}/recalbox.tar"
         cd "${{ env.WORKDIR }}"
