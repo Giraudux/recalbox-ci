@@ -26,20 +26,24 @@ jobs:
   init:
     runs-on: ubuntu-latest
     env:
-      WORKDIR: ${{ github.workspace }}/recalbox
-      OUTPUTDIR: ${{ github.workspace }}/output
-      CCACHEDIR: ${{ github.workspace }}/ccache
-      DL: ${{ github.workspace }}/dl
-      HOST: ${{ github.workspace }}/host
+      WORKDIR: /pool/recalbox
+      OUTPUTDIR: /pool/output
+      DL: /pool/dl
+      HOST: /pool/host
     steps:
+    # Install dependencies
+    - run: |
+        sudo apt update
+        sudo apt install -y zfsutils-linux
+    # Create zpool
+    - run: |
+        fallocate -l 8G "${{ runner.temp }}/recalbox.zpool"
+        sudo zpool create -O compression=zstd pool "${{ runner.temp }}/recalbox.zpool"
+        sudo chown "$USER:$USER" /pool/
+        mkdir "${{ env.OUTPUTDIR }}" "${{ env.DL }}" "${{ env.HOST }}"
     # Clone repo
     - run: |
         git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "${{ env.WORKDIR }}"
-    - uses: actions/upload-artifact@v4
-      with:
-        name: workdir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.WORKDIR }}
-        include-hidden-files: true
     # Build Docker image
     - run: |
         docker build --tag recalbox "${{ env.WORKDIR }}"
@@ -48,30 +52,10 @@ jobs:
       with:
         name: docker-${{ inputs.tag }}-${{ inputs.arch }}
         path: ${{ runner.temp }}/recalbox.tar
-    # Create directories
+    # Export zpool
     - run: |
-        mkdir --parents "${{ env.OUTPUTDIR }}" "${{ env.CCACHEDIR }}" "${{ env.DL }}" "${{ env.HOST }}"
-        touch "${{ env.OUTPUTDIR }}/.keep"
-        touch "${{ env.CCACHEDIR }}/.keep"
-        touch "${{ env.DL }}/.keep"
-        touch "${{ env.HOST }}/.keep"
+        sudo zpool export pool
     - uses: actions/upload-artifact@v4
       with:
-        name: outdir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.OUTPUTDIR }}
-        include-hidden-files: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ccachedir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.CCACHEDIR }}
-        include-hidden-files: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: dl-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.DL }}
-        include-hidden-files: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: host-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.HOST }}
-        include-hidden-files: true
+        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ runner.temp }}/recalbox.zpool

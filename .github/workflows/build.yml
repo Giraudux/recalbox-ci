@@ -25,13 +25,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RECALBOX_VERSION: ${{ inputs.tag }}
-      WORKDIR: ${{ github.workspace }}/recalbox
-      OUTPUTDIR: ${{ github.workspace }}/output
-      CCACHEDIR: ${{ github.workspace }}/ccache
-      DL: ${{ github.workspace }}/dl
-      HOST: ${{ github.workspace }}/host
-      CCACHE: true
+      WORKDIR: /pool/recalbox
+      OUTPUTDIR: /pool/output
+      DL: /pool/dl
+      HOST: /pool/host
     steps:
+    # Install dependencies
+    - run: |
+        sudo apt update
+        sudo apt install -y zfsutils-linux
     # - uses: endersonmenezes/free-disk-space@v3
     #   with:
     #     remove_android: true
@@ -46,76 +48,41 @@ jobs:
     #     rmz_version: "3.1.1"
     #     testing: false
     # Download artifacts
-    - uses: actions/download-artifact@v5
-      with:
-        name: workdir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.WORKDIR }}
-    - uses: actions/download-artifact@v5
-      with:
-        name: outdir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.OUTPUTDIR }}
-    - uses: actions/download-artifact@v5
-      with:
-        name: ccachedir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.CCACHEDIR }}
-    - uses: actions/download-artifact@v5
-      with:
-        name: dl-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.DL }}
-    - uses: actions/download-artifact@v5
-      with:
-        name: host-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.HOST }}
+    
+    # Import docker image
     - uses: actions/download-artifact@v5
       with:
         name: docker-${{ inputs.tag }}-${{ inputs.arch }}
         path: ${{ runner.temp }}
+    - run: |
+        docker load --input "${{ runner.temp }}/recalbox.tar"
+        rm "${{ runner.temp }}/recalbox.tar"
+    # Import zpool
+    - uses: actions/download-artifact@v5
+      with:
+        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ runner.temp }}
+    - run: |
+        sudo zpool import -d "${{ runner.temp }}" pool
     # Build
     - run: |
         set -x
-        docker load --input "${{ runner.temp }}/recalbox.tar"
-        rm "${{ runner.temp }}/recalbox.tar"
         cd "${{ env.WORKDIR }}"
         docker run --rm --security-opt seccomp=unconfined \
           -v "${{ env.WORKDIR }}:/work" \
           -v "${{ env.OUTPUTDIR }}:/work/output" \
           -v "${{ env.DL }}:/share/dl" \
           -v "${{ env.HOST }}:/share/host" \
-          -v "${{ env.CCACHEDIR }}:/share/ccache" \
           -e "ARCH=${{ inputs.arch }}" \
           -e "RECALBOX_VERSION=${{ env.RECALBOX_VERSION }}" \
           -e "FORCE_UNSAFE_CONFIGURE=1" \
-          -e "RECALBOX_CCACHE_ENABLED=${{ env.CCACHE }}" \
           --user="$(id -u):$(id -g)" \
           recalbox
-    # Upload artifacts
+    # Export zpool
+    - run: |
+        sudo zpool export pool
     - uses: actions/upload-artifact@v4
       with:
-        name: workdir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.WORKDIR }}
-        include-hidden-files: true
-        overwrite: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: outdir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.OUTPUTDIR }}
-        include-hidden-files: true
-        overwrite: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ccachedir-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.CCACHEDIR }}
-        include-hidden-files: true
-        overwrite: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: dl-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.DL }}
-        include-hidden-files: true
-        overwrite: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: host-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ env.HOST }}
-        include-hidden-files: true
+        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ runner.temp }}/recalbox.zpool
         overwrite: true
