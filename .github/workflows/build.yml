@@ -20,69 +20,15 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-  build:
+  nibble1:
     needs: init
-    runs-on: ubuntu-latest
-    env:
-      RECALBOX_VERSION: ${{ inputs.tag }}
-      WORKDIR: /pool/recalbox
-      OUTPUTDIR: /pool/output
-      DL: /pool/dl
-      HOST: /pool/host
-    steps:
-    # Install dependencies
-    - run: |
-        sudo apt update
-        sudo apt install -y zfsutils-linux
-    # - uses: endersonmenezes/free-disk-space@v3
-    #   with:
-    #     remove_android: true
-    #     remove_dotnet: true
-    #     remove_haskell: true
-    #     remove_tool_cache: true
-    #     remove_swap: true
-    #     remove_packages: "azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox postgresql* temurin-* *llvm* mysql* dotnet-sdk-*"
-    #     remove_packages_one_command: true
-    #     remove_folders: "/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle"
-    #     rm_cmd: "rmz"
-    #     rmz_version: "3.1.1"
-    #     testing: false
-    # Download artifacts
-    
-    # Import docker image
-    - uses: actions/download-artifact@v5
-      with:
-        name: docker-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ runner.temp }}
-    - run: |
-        docker load --input "${{ runner.temp }}/recalbox.tar"
-        rm "${{ runner.temp }}/recalbox.tar"
-    # Import zpool
-    - uses: actions/download-artifact@v5
-      with:
-        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ runner.temp }}
-    - run: |
-        sudo zpool import -d "${{ runner.temp }}" pool
-    # Build
-    - run: |
-        set -x
-        cd "${{ env.WORKDIR }}"
-        docker run --rm --security-opt seccomp=unconfined \
-          -v "${{ env.WORKDIR }}:/work" \
-          -v "${{ env.OUTPUTDIR }}:/work/output" \
-          -v "${{ env.DL }}:/share/dl" \
-          -v "${{ env.HOST }}:/share/host" \
-          -e "ARCH=${{ inputs.arch }}" \
-          -e "RECALBOX_VERSION=${{ env.RECALBOX_VERSION }}" \
-          -e "FORCE_UNSAFE_CONFIGURE=1" \
-          --user="$(id -u):$(id -g)" \
-          recalbox
-    # Export zpool
-    - run: |
-        sudo zpool export pool
-    - uses: actions/upload-artifact@v4
-      with:
-        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ runner.temp }}/recalbox.zpool
-        overwrite: true
+    uses: ./.github/workflows/nibble.yml
+    with:
+      tag: ${{ inputs.tag }}
+      arch: ${{ inputs.arch }}
+  nibble2:
+    needs: nibble1
+    uses: ./.github/workflows/nibble.yml
+    with:
+      tag: ${{ inputs.tag }}
+      arch: ${{ inputs.arch }}

@@ -1,14 +1,6 @@
-name: init
+name: nibble
 
 on:
-  workflow_call:
-    inputs:
-      tag:
-        required: true
-        type: string
-      arch:
-        required: true
-        type: string
   workflow_dispatch:
     inputs:
       tag:
@@ -23,25 +15,10 @@ on:
         type: string
 
 jobs:
-  init-docker:
+  build:
     runs-on: ubuntu-latest
     env:
-      WORKDIR: ${{ github.workspace }}/recalbox
-    steps:
-    # Clone repo
-    - run: |
-        git clone --depth 1 --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "${{ env.WORKDIR }}"
-    # Build Docker image
-    - run: |
-        docker build --tag recalbox "${{ env.WORKDIR }}"
-        docker image save --output "${{ runner.temp }}/recalbox.tar" recalbox
-    - uses: actions/upload-artifact@v4
-      with:
-        name: docker-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ runner.temp }}/recalbox.tar
-  init-zpool:
-    runs-on: ubuntu-latest
-    env:
+      RECALBOX_VERSION: ${{ inputs.tag }}
       WORKDIR: /pool/recalbox
       OUTPUTDIR: /pool/output
       DL: /pool/dl
@@ -50,7 +27,15 @@ jobs:
     # Install dependencies
     - run: |
         sudo apt update
-        sudo apt install -y zfsutils-linux
+        sudo apt install -y zfsutils-linux    
+    # Import docker image
+    - uses: actions/download-artifact@v5
+      with:
+        name: docker-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ runner.temp }}
+    - run: |
+        docker load --input "${{ runner.temp }}/recalbox.tar"
+        rm "${{ runner.temp }}/recalbox.tar"
     # Free disk space
     - uses: endersonmenezes/free-disk-space@v3
       with:
@@ -65,17 +50,26 @@ jobs:
         rm_cmd: "rmz"
         rmz_version: "3.1.1"
         testing: false
-    # Free space
-    - run: df -h
-    # Create zpool
+    # Import zpool
+    - uses: actions/download-artifact@v5
+      with:
+        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ runner.temp }}
     - run: |
-        fallocate -l 56G "${{ runner.temp }}/recalbox.zpool"
-        sudo zpool create -O compression=zstd pool "${{ runner.temp }}/recalbox.zpool"
-        sudo chown "$USER:$USER" /pool/
-        mkdir "${{ env.OUTPUTDIR }}" "${{ env.DL }}" "${{ env.HOST }}"
-    # Clone repo
+        sudo zpool import -d "${{ runner.temp }}" pool
+    # Build
     - run: |
-        git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "${{ env.WORKDIR }}"
+        cd "${{ env.WORKDIR }}"
+        docker run --rm --security-opt seccomp=unconfined \
+          -v "${{ env.WORKDIR }}:/work" \
+          -v "${{ env.OUTPUTDIR }}:/work/output" \
+          -v "${{ env.DL }}:/share/dl" \
+          -v "${{ env.HOST }}:/share/host" \
+          -e "ARCH=${{ inputs.arch }}" \
+          -e "RECALBOX_VERSION=${{ env.RECALBOX_VERSION }}" \
+          -e "FORCE_UNSAFE_CONFIGURE=1" \
+          --user="$(id -u):$(id -g)" \
+          recalbox
     # Export zpool
     - run: |
         sudo zpool export pool
@@ -83,3 +77,4 @@ jobs:
       with:
         name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
         path: ${{ runner.temp }}/recalbox.zpool
+        overwrite: true
