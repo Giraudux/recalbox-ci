@@ -1,6 +1,14 @@
 name: nibble
 
 on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       tag:
