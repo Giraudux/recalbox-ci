@@ -11,8 +11,7 @@ on:
         type: string
       timeout:
         type: number
-        default: 300 # 5 minutes
-#        default: 18000 # 5 hours
+        default: 18000 # 5 hours
 
 jobs:
   build:
