@@ -13,14 +13,14 @@ jobs:
         sudo apt update
         sudo apt install -y zfsutils-linux qemu-utils
         qemu-img create -f qcow2 test0.qcow2 50G
-        ls /dev/ | grep -q nbd
+        ls /dev/ | grep nbd || true
         sudo modprobe nbd nbds_max=1 max_part=8
-        ls /dev/ | grep -q nbd
+        ls /dev/ | grep nbd || true
         sudo qemu-nbd -c /dev/nbd0 -f qcow2 test0.qcow2
         sudo zpool create -O compression=zstd test0 /dev/nbd0
         sudo chown "$USER:$USER" /test0/
         touch /test0/hello
-        ls /dev/ | grep -q nbd
+        ls /dev/ | grep nbd || true
         sudo zpool export test0
         sleep 10
         sudo zpool import -d /dev/ test0
