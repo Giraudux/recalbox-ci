@@ -23,7 +23,7 @@ on:
         type: string
 
 jobs:
-  init-docker:
+  docker:
     runs-on: ubuntu-latest
     env:
       WORKDIR: ${{ github.workspace }}/recalbox
@@ -39,7 +39,7 @@ jobs:
       with:
         name: docker-${{ inputs.tag }}-${{ inputs.arch }}
         path: ${{ runner.temp }}/recalbox.tar
-  init-zpool:
+  disk:
     runs-on: ubuntu-latest
     env:
       WORKDIR: /pool/recalbox
@@ -71,7 +71,7 @@ jobs:
     - run: |
         set -x
         sudo modprobe nbd nbds_max=1
-        qemu-img create -f qcow2 "${{ runner.temp }}/recalbox.qcow2" 50G
+        qemu-img create -f qcow2 "${{ runner.temp }}/recalbox.qcow2" 55G
         sudo qemu-nbd -c /dev/nbd0 -f qcow2 "${{ runner.temp }}/recalbox.qcow2"
         sudo zpool create -O compression=zstd pool /dev/nbd0
         sudo chown "$USER:$USER" /pool/
@@ -81,6 +81,7 @@ jobs:
         git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "${{ env.WORKDIR }}"
     # Export zpool
     - run: |
+        zfs get all pool
         sudo zpool export pool
         sudo qemu-nbd -d /dev/nbd0
     - uses: actions/upload-artifact@v4

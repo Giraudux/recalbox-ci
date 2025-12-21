@@ -62,6 +62,7 @@ jobs:
         sudo modprobe nbd nbds_max=1
         sudo qemu-nbd -c /dev/nbd0 -f qcow2 "${{ runner.temp }}/recalbox.qcow2"
         sudo zpool import -d /dev/ pool
+        zfs get all pool
     # Build
     - run: |
         set -x
@@ -97,6 +98,7 @@ jobs:
       run: df -h
     # Export zpool
     - run: |
+        zfs get all pool
         sudo zpool export pool
         sudo qemu-nbd -d /dev/nbd0
     - uses: actions/upload-artifact@v4
@@ -104,3 +106,4 @@ jobs:
         name: qcow2-${{ inputs.tag }}-${{ inputs.arch }}
         path: ${{ runner.temp }}/recalbox.qcow2
         compression-level: 0
+        overwrite: true
