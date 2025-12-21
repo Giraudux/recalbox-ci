@@ -50,7 +50,7 @@ jobs:
     # Install dependencies
     - run: |
         sudo apt update
-        sudo apt install -y zfsutils-linux
+        sudo apt install -y zfsutils-linux qemu-utils
     # Free disk space
     - uses: endersonmenezes/free-disk-space@v3
       with:
@@ -69,8 +69,11 @@ jobs:
     - run: df -h
     # Create zpool
     - run: |
-        fallocate -l 56G "${{ runner.temp }}/recalbox.zpool"
-        sudo zpool create -O compression=zstd pool "${{ runner.temp }}/recalbox.zpool"
+        set -x
+        sudo modprobe nbd nbds_max=1
+        qemu-img create -f qcow2 "${{ runner.temp }}/recalbox.qcow2" 50G
+        sudo qemu-nbd -c /dev/nbd0 -f qcow2 "${{ runner.temp }}/recalbox.qcow2"
+        sudo zpool create -O compression=zstd pool /dev/nbd0
         sudo chown "$USER:$USER" /pool/
         mkdir "${{ env.OUTPUTDIR }}" "${{ env.DL }}" "${{ env.HOST }}"
     # Clone repo
@@ -79,7 +82,9 @@ jobs:
     # Export zpool
     - run: |
         sudo zpool export pool
+        sudo qemu-nbd -d /dev/nbd0
     - uses: actions/upload-artifact@v4
       with:
-        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ runner.temp }}/recalbox.zpool
+        name: qcow2-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ runner.temp }}/recalbox.qcow2
+        compression-level: 0

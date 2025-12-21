@@ -11,7 +11,7 @@ on:
         type: string
       timeout:
         type: number
-        default: 18000 # 5 hours
+        default: 14400 # 4 hours
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
     # Install dependencies
     - run: |
         sudo apt update
-        sudo apt install -y zfsutils-linux tree
+        sudo apt install -y zfsutils-linux qemu-utils tree
     # Import docker image
     - uses: actions/download-artifact@v5
       with:
@@ -49,20 +49,27 @@ jobs:
         rm_cmd: "rmz"
         rmz_version: "3.1.1"
         testing: false
+    # Disk space available
+    - if: always()
+      run: df -h
     # Import zpool
     - uses: actions/download-artifact@v5
       with:
-        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
+        name: qcow2-${{ inputs.tag }}-${{ inputs.arch }}
         path: ${{ runner.temp }}
     - run: |
-        sudo zpool import -d "${{ runner.temp }}" pool
+        set -x
+        sudo modprobe nbd nbds_max=1
+        sudo qemu-nbd -c /dev/nbd0 -f "qcow2 ${{ runner.temp }}/recalbox.qcow2"
+        sudo zpool import -d /dev/ pool
     # Build
     - run: |
         set -x
+        readonly stub_cmd="${{ env.OUTPUTDIR }}/host/bin/make"
         readonly timeout_sec="${{ inputs.timeout }}"
         current_time_sec=$(date +%s)
         end_time_sec=$((current_time_sec + timeout_sec))
-        (sleep "$timeout_sec" ; docker stop recalbox) &
+        (sleep "$timeout_sec" ; echo "exit 1" > "$stub_cmd" && chmod +x "$stub_cmd") &
         cd "${{ env.WORKDIR }}"
         if docker run --rm --security-opt seccomp=unconfined \
           --name recalbox \
@@ -84,11 +91,16 @@ jobs:
             exit 1
           fi
         fi
+        rm "$stub_cmd"
+    # Disk space available
+    - if: always()
+      run: df -h
     # Export zpool
     - run: |
         sudo zpool export pool
+        sudo qemu-nbd -d /dev/nbd0
     - uses: actions/upload-artifact@v4
       with:
-        name: zpool-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ runner.temp }}/recalbox.zpool
-        overwrite: true
+        name: qcow2-${{ inputs.tag }}-${{ inputs.arch }}
+        path: ${{ runner.temp }}/recalbox.qcow2
+        compression-level: 0
