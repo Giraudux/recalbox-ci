@@ -28,7 +28,6 @@ jobs:
         sudo apt update
         sudo apt install --yes zfsutils-linux qemu-utils tree
         sudo modprobe nbd nbds_max=4
-        sudo mkdir --parents /pool/
         mkdir --parents "${{ runner.temp }}/dev/"
         ln --symbolic /dev/nbd0 "${{ runner.temp }}/dev/work"
         ln --symbolic /dev/nbd1 "${{ runner.temp }}/dev/host"

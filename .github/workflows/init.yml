@@ -42,8 +42,7 @@ jobs:
         sudo modprobe nbd nbds_max=1
         qemu-img create -f qcow2 "${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2" 64G
         sudo qemu-nbd --connect /dev/nbd0 --format qcow2 "${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo mkdir --parents /pool/
-        sudo zpool create -O compression=zstd -m /pool/work work /dev/nbd0
+        sudo zpool create -O compression=zstd-19 -m /pool/work work /dev/nbd0
         sudo chown "$USER:$USER" /pool/work/
     # Clone repo
     - run: |
@@ -75,7 +74,6 @@ jobs:
         sudo modprobe nbd nbds_max=1
         qemu-img create -f qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2" 64G
         sudo qemu-nbd --connect /dev/nbd0 --format qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo mkdir --parents /pool/
         sudo zpool create -O compression=zstd-19 -m /pool/dl dl /dev/nbd0
         sudo chown "$USER:$USER" /pool/dl/
     # Export zpool
@@ -100,8 +98,7 @@ jobs:
         sudo modprobe nbd nbds_max=1
         qemu-img create -f qcow2 "${{ runner.temp }}/host-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2" 64G
         sudo qemu-nbd --connect /dev/nbd0 --format qcow2 "${{ runner.temp }}/host-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo mkdir --parents /pool/
-        sudo zpool create -O compression=zstd -m /pool/host host /dev/nbd0
+        sudo zpool create -O compression=zstd-19 -m /pool/host host /dev/nbd0
         sudo chown "$USER:$USER" /pool/host/
     # Export zpool
     - run: |
@@ -125,8 +122,7 @@ jobs:
         sudo modprobe nbd nbds_max=1
         qemu-img create -f qcow2 "${{ runner.temp }}/output-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2" 64G
         sudo qemu-nbd --connect /dev/nbd0 --format qcow2 "${{ runner.temp }}/output-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo mkdir --parents /pool/
-        sudo zpool create -O compression=zstd -m /pool/output output /dev/nbd0
+        sudo zpool create -O compression=zstd-19 -m /pool/output output /dev/nbd0
         sudo chown "$USER:$USER" /pool/output/
         mkdir --parents /pool/output/build/.npm
     # Export zpool
