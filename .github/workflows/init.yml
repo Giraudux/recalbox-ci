@@ -49,6 +49,7 @@ jobs:
     - uses: actions/checkout@v6
     - run: |
         (cd "/pool/work/recalbox/" && git apply "${{ github.workspace }}/patch/bass24.patch") || true
+        (cd "/pool/work/recalbox/" && git apply "${{ github.workspace }}/patch/megatools.patch") || true
     # Export zpool
     - run: |
         zfs get all work

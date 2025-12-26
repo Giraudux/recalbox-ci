@@ -65,7 +65,7 @@ jobs:
         set -x
         qemu-img create -f qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2" 10G
         sudo qemu-nbd --connect "${{ runner.temp }}/dev/dl" --format qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo zpool create -O compression=zstd-22 -m /pool/dl/ dl "${{ runner.temp }}/dev/dl"
+        sudo zpool create -O compression=zstd-19 -m /pool/dl/ dl "${{ runner.temp }}/dev/dl"
         sudo chown "$USER:$USER" /pool/dl/
     - if: steps.cache-dl.outputs.cache-hit == 'true'
       run: |

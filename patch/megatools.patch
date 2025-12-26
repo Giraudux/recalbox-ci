@@ -1,0 +1,136 @@
+diff --git a/Config.in b/Config.in
+index e987648..34dbe44 100644
+--- a/Config.in
++++ b/Config.in
+@@ -395,7 +395,6 @@ menu "Utils"
+          source "$BR2_EXTERNAL_RECALBOX_PATH/package/rtw89/Config.in"
+          source "$BR2_EXTERNAL_RECALBOX_PATH/package/libcapsimage/Config.in"
+          source "$BR2_EXTERNAL_RECALBOX_PATH/package/libretro-cheats/Config.in"
+-         source "$BR2_EXTERNAL_RECALBOX_PATH/package/megatools/Config.in"
+          source "$BR2_EXTERNAL_RECALBOX_PATH/package/raspi2png/Config.in"
+          source "$BR2_EXTERNAL_RECALBOX_PATH/package/switchres/Config.in"
+          source "$BR2_EXTERNAL_RECALBOX_PATH/package/recalbox-crt/Config.in"
+diff --git a/configs/recalbox-odroidgo2_defconfig b/configs/recalbox-odroidgo2_defconfig
+index a639a26..1795e6a 100644
+--- a/configs/recalbox-odroidgo2_defconfig
++++ b/configs/recalbox-odroidgo2_defconfig
+@@ -304,7 +304,6 @@ BR2_PACKAGE_RECALBOX-FBV=y
+ BR2_PACKAGE_JSTEST2=y
+ BR2_PACKAGE_WSD=y
+ BR2_PACKAGE_LIBRETRO_CHEATS=y
+-BR2_PACKAGE_MEGATOOLS=y
+ BR2_PACKAGE_FLUIDSYNTH_PULSEAUDIO=y
+ BR2_PACKAGE_PAMIX=y
+ BR2_PACKAGE_RTL8189FS=y
+diff --git a/configs/recalbox-rg353x_defconfig b/configs/recalbox-rg353x_defconfig
+index 25d1ac0..61bb460 100644
+--- a/configs/recalbox-rg353x_defconfig
++++ b/configs/recalbox-rg353x_defconfig
+@@ -295,7 +295,6 @@ BR2_PACKAGE_LIBRETRO_WASM4=y
+ BR2_PACKAGE_JSTEST2=y
+ BR2_PACKAGE_WSD=y
+ BR2_PACKAGE_LIBRETRO_CHEATS=y
+-BR2_PACKAGE_MEGATOOLS=y
+ BR2_PACKAGE_PAMIX=y
+ BR2_PACKAGE_KMSGRAB=y
+ BR2_PACKAGE_XONE=y
+diff --git a/configs/recalbox-rpi3_defconfig b/configs/recalbox-rpi3_defconfig
+index fb273e7..870d723 100644
+--- a/configs/recalbox-rpi3_defconfig
++++ b/configs/recalbox-rpi3_defconfig
+@@ -343,7 +343,6 @@ BR2_PACKAGE_JSTEST2=y
+ BR2_PACKAGE_WSD=y
+ BR2_PACKAGE_KERNELFIRMWARES=y
+ BR2_PACKAGE_LIBRETRO_CHEATS=y
+-BR2_PACKAGE_MEGATOOLS=y
+ BR2_PACKAGE_UTIL_LINUX_RFKILL=y
+ BR2_PACKAGE_TCL=y
+ BR2_PACKAGE_EXPECT=y
+diff --git a/configs/recalbox-rpi4_64_defconfig b/configs/recalbox-rpi4_64_defconfig
+index 585fc4a..e99c84d 100644
+--- a/configs/recalbox-rpi4_64_defconfig
++++ b/configs/recalbox-rpi4_64_defconfig
+@@ -339,7 +339,6 @@ BR2_PACKAGE_JSTEST2=y
+ BR2_PACKAGE_WSD=y
+ BR2_PACKAGE_KERNELFIRMWARES=y
+ BR2_PACKAGE_LIBRETRO_CHEATS=y
+-BR2_PACKAGE_MEGATOOLS=y
+ BR2_PACKAGE_UTIL_LINUX_RFKILL=y
+ BR2_PACKAGE_TCL=y
+ BR2_PACKAGE_EXPECT=y
+diff --git a/configs/recalbox-rpi5_64_defconfig b/configs/recalbox-rpi5_64_defconfig
+index c2bd06e..a8cab68 100644
+--- a/configs/recalbox-rpi5_64_defconfig
++++ b/configs/recalbox-rpi5_64_defconfig
+@@ -342,7 +342,6 @@ BR2_PACKAGE_JSTEST2=y
+ BR2_PACKAGE_WSD=y
+ BR2_PACKAGE_KERNELFIRMWARES=y
+ BR2_PACKAGE_LIBRETRO_CHEATS=y
+-BR2_PACKAGE_MEGATOOLS=y
+ BR2_PACKAGE_UTIL_LINUX_RFKILL=y
+ BR2_PACKAGE_TCL=y
+ BR2_PACKAGE_EXPECT=y
+diff --git a/configs/recalbox-rpizero2_defconfig b/configs/recalbox-rpizero2_defconfig
+index 8790807..0eeb9a3 100644
+--- a/configs/recalbox-rpizero2_defconfig
++++ b/configs/recalbox-rpizero2_defconfig
+@@ -343,7 +343,6 @@ BR2_PACKAGE_JSTEST2=y
+ BR2_PACKAGE_WSD=y
+ BR2_PACKAGE_KERNELFIRMWARES=y
+ BR2_PACKAGE_LIBRETRO_CHEATS=y
+-BR2_PACKAGE_MEGATOOLS=y
+ BR2_PACKAGE_UTIL_LINUX_RFKILL=y
+ BR2_PACKAGE_TCL=y
+ BR2_PACKAGE_EXPECT=y
+diff --git a/configs/recalbox-x86_64_defconfig b/configs/recalbox-x86_64_defconfig
+index 80bb775..5cf25ff 100644
+--- a/configs/recalbox-x86_64_defconfig
++++ b/configs/recalbox-x86_64_defconfig
+@@ -389,7 +389,6 @@ BR2_PACKAGE_HHPC=y
+ BR2_PACKAGE_JSTEST2=y
+ BR2_PACKAGE_WSD=y
+ BR2_PACKAGE_LIBRETRO_CHEATS=y
+-BR2_PACKAGE_MEGATOOLS=y
+ BR2_PACKAGE_UTIL_LINUX_RFKILL=y
+ BR2_TARGET_ROOTFS_SQUASHFS=y
+ BR2_TARGET_ROOTFS_SQUASHFS4_XZ=y
+diff --git a/package/megatools/Config.in b/package/megatools/Config.in
+deleted file mode 100644
+index e881e20..0000000
+--- a/package/megatools/Config.in
++++ /dev/null
+@@ -1,6 +0,0 @@
+-config BR2_PACKAGE_MEGATOOLS
+-	bool "megatools"
+-	help
+-	  A command line client for Mega.nz
+-
+-	  https://github.com/megous/megatools
+diff --git a/package/megatools/megatools.hash b/package/megatools/megatools.hash
+deleted file mode 100644
+index d077876..0000000
+--- a/package/megatools/megatools.hash
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Locally computed:
+-sha512  cf431e151f3f7e1a77fcfe07092694f861eca43ab88bb4e0d4de72f01662e9140c51891f8f5cf3cf66d3a04b64a55d57fd766c3febf2fc5cee1720558ff2079b  megatools-1.10.3.tar.gz
+diff --git a/package/megatools/megatools.mk b/package/megatools/megatools.mk
+deleted file mode 100644
+index 6e4fc8f..0000000
+--- a/package/megatools/megatools.mk
++++ /dev/null
+@@ -1,14 +0,0 @@
+-################################################################################
+-#
+-# MEGATOOLS
+-#
+-################################################################################
+-
+-MEGATOOLS_VERSION = 1.10.3
+-MEGATOOLS_SITE = https://megatools.megous.com/builds
+-MEGATOOLS_LICENSE = GPLv2
+-
+-MEGATOOLS_CONF_OPTS = \
+-	--prefix=/usr
+-
+-$(eval $(autotools-package))
