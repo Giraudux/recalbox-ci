@@ -89,7 +89,7 @@ jobs:
         path: ${{ runner.temp }}
     - run: |
         set -x
-        sudo qemu-nbd --connect "${{ runner.temp }}/dev/host" --format qcow2 "${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
+        sudo qemu-nbd --connect "${{ runner.temp }}/dev/host" --format qcow2 "${{ runner.temp }}/host-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
         sudo zpool import -d "${{ runner.temp }}/dev/" host
         zfs get all host
     - uses: actions/download-artifact@v5
