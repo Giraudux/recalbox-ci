@@ -52,6 +52,8 @@ jobs:
     - run: |
         (cd "/pool/work/recalbox/" && git apply "${{ github.workspace }}/patch/bass24.patch") || true
         (cd "/pool/work/recalbox/" && git apply "${{ github.workspace }}/patch/megatools.patch") || true
+        (cd "/pool/work/recalbox/" && git apply "${{ github.workspace }}/patch/libretro-melonds.patch") || true
+        (cd "/pool/work/recalbox/" && git apply "${{ github.workspace }}/patch/libretro-tamalibretro.patch") || true
     # Export zpool
     - run: |
         zfs get all work
