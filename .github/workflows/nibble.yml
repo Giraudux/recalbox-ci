@@ -61,6 +61,7 @@ jobs:
       run: df --human-readable
     # Cache DL
     - run: |
+        echo user_allow_other | sudo tee --append /etc/fuse.conf
         sudo mkdir --parents /pool/ftp/
         sudo chown "$USER:$USER" /pool/ftp/
         curlftpfs -s "${{ secrets.CURLFTPFS_HOST }}" /pool/ftp/ -o user="${{ secrets.CURLFTPFS_USER }}" -o allow_other
