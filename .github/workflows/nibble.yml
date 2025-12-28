@@ -135,6 +135,7 @@ jobs:
           --volume "/pool/dl/:/share/dl/" \
           --volume "/pool/host/:/share/host/" \
           --volume "/pool/output/build/.npm:/.npm" \
+          --volume "/pool/ftp/:/share/ftp/" \
           --env "ARCH=${{ inputs.arch }}" \
           --env "RECALBOX_VERSION=${{ inputs.tag }}" \
           --env "FORCE_UNSAFE_CONFIGURE=1" \
