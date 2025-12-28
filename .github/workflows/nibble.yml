@@ -25,10 +25,11 @@ jobs:
     # Install dependencies
     - run: |
         set -x
+        mkdir --parents "${{ runner.temp }}/dev/" "${{ runner.temp }}/pool/"
+        wget --directory-prefix="${{ runner.temp }}/pool/" http://archive.ubuntu.com/ubuntu/pool/universe/c/curlftpfs/curlftpfs_0.9.2-9build1_amd64.deb
         sudo apt update
-        sudo apt install --yes zfsutils-linux qemu-utils tree
+        sudo apt install --yes "${{ runner.temp }}/pool/"*.deb zfsutils-linux qemu-utils tree
         sudo modprobe nbd nbds_max=4
-        mkdir --parents "${{ runner.temp }}/dev/"
         ln --symbolic /dev/nbd0 "${{ runner.temp }}/dev/work"
         ln --symbolic /dev/nbd1 "${{ runner.temp }}/dev/host"
         ln --symbolic /dev/nbd2 "${{ runner.temp }}/dev/dl"
@@ -59,6 +60,10 @@ jobs:
     - if: always()
       run: df --human-readable
     # Cache DL
+    - run: |
+        sudo mkdir --parents /pool/ftp/
+        sudo chown "$USER:$USER" /pool/ftp/
+        curlftpfs -s "${{ secrets.CURLFTPFS_HOST }}" /pool/ftp/ -o user="${{ secrets.CURLFTPFS_USER }}"
     # - uses: actions/cache/restore@v4
     #   id: cache-dl
     #   with:
@@ -168,6 +173,9 @@ jobs:
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/host"
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/dl"
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/output"
+    # Cache
+    - run: |
+        fusermount -u /pool/ftp/
     - uses: actions/upload-artifact@v4
       with:
         name: work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
