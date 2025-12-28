@@ -63,7 +63,7 @@ jobs:
     - run: |
         sudo mkdir --parents /pool/ftp/
         sudo chown "$USER:$USER" /pool/ftp/
-        curlftpfs -s "${{ secrets.CURLFTPFS_HOST }}" /pool/ftp/ -o user="${{ secrets.CURLFTPFS_USER }}"
+        curlftpfs -s "${{ secrets.CURLFTPFS_HOST }}" /pool/ftp/ -o user="${{ secrets.CURLFTPFS_USER }}" -o allow_other
     # - uses: actions/cache/restore@v4
     #   id: cache-dl
     #   with:
