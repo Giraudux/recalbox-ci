@@ -103,7 +103,7 @@ jobs:
         sudo mkdir --parents /pool/ftp/
         sudo chown "$USER:$USER" /pool/ftp/
         curlftpfs -s "${{ secrets.CURLFTPFS_HOST }}" /pool/ftp/ -o user="${{ secrets.CURLFTPFS_USER }}" -o allow_other
-        find /pool/ftp/ -mindepth 2 -maxdepth 2 -type f -printf "%P\0" | xargs --null --replace -- sh -c "mkdir --verbose --parents \"/pool/dl/\$(dirname \"{}\")\" ; ln --verbose --force --symbolic \"/share/ftp/{}\" \"/pool/dl/{}\""
+        find /pool/ftp/ -type f -printf "%P\0" | xargs --null --replace -- sh -c "mkdir --verbose --parents \"/pool/dl/\$(dirname \"{}\")\" ; ln --verbose --force --symbolic \"/share/ftp/{}\" \"/pool/dl/{}\""
     # Build
     - id: build
       run: |
@@ -144,6 +144,18 @@ jobs:
       run: |
         ls --human-readable -l "${{ runner.temp }}"
         df --human-readable
+    # Cache
+    - run: |
+        set -x
+        set +e
+        for package in /pool/dl/*/
+        do
+          if ! ls "$package"/*/ >/dev/null 2>&1
+          then
+            cp --verbose --update=none --recursive "$package" /pool/ftp/ && rm --verbose --recursive "$package"
+          fi
+        done
+        fusermount -u /pool/ftp/
     # Export zpool
     - run: |
         set -x
@@ -159,18 +171,6 @@ jobs:
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/host"
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/dl"
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/output"
-    # Cache
-    - run: |
-        set -x
-        set +e
-        for package in /pool/dl/*/
-        do
-          if ! ls "$package"/*/ >/dev/null 2>&1
-          then
-            cp --verbose --no-clobber --recursive "$package" /pool/ftp/ && rm --verbose --recursive "$package"
-          fi
-        done
-        fusermount -u /pool/ftp/
     - uses: actions/upload-artifact@v4
       with:
         name: work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
