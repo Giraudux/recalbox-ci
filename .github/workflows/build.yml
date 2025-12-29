@@ -30,30 +30,35 @@ jobs:
   nibble2:
     needs: nibble1
     uses: ./.github/workflows/nibble.yml
+    secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
   nibble3:
     needs: nibble2
     uses: ./.github/workflows/nibble.yml
+    secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
   nibble4:
     needs: nibble3
     uses: ./.github/workflows/nibble.yml
+    secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
   nibble5:
     needs: nibble4
     uses: ./.github/workflows/nibble.yml
+    secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
   nibble6:
     needs: nibble5
     uses: ./.github/workflows/nibble.yml
+    secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
