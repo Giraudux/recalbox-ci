@@ -12,6 +12,9 @@ on:
       timeout:
         type: number
         default: 18000 # 5 hours
+      build_extra_args:
+        type: string
+        default: ""
     outputs:
       status:
         value: ${{ jobs.build.outputs.status }}
@@ -26,10 +29,9 @@ jobs:
     - name: "Install dependencies"
       run: |
         set -x
-        mkdir --parents "${{ runner.temp }}/dev/" "${{ runner.temp }}/pool/"
-        wget --directory-prefix="${{ runner.temp }}/pool/" http://archive.ubuntu.com/ubuntu/pool/universe/c/curlftpfs/curlftpfs_0.9.2-9build1_amd64.deb
+        mkdir --parents "${{ runner.temp }}/dev/"
         sudo apt update
-        sudo apt install --yes "${{ runner.temp }}/pool/"*.deb zfsutils-linux qemu-utils tree
+        sudo apt install --yes zfsutils-linux qemu-utils tree
         sudo modprobe nbd nbds_max=4
         ln --symbolic /dev/nbd0 "${{ runner.temp }}/dev/work"
         ln --symbolic /dev/nbd1 "${{ runner.temp }}/dev/host"
@@ -65,6 +67,13 @@ jobs:
       if: always()
       run: df --human-readable
     # Import zpool
+    - name: "Create qcow2 & zpool - dl"
+      run: |
+        set -x
+        qemu-img create -f qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2" 64G
+        sudo qemu-nbd --connect "${{ runner.temp }}/dev/dl" --format qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
+        sudo zpool create -O compression=zstd -m /pool/dl dl "${{ runner.temp }}/dev/dl"
+        sudo chown "$USER:$USER" /pool/dl/
     - name: "Download artifact qcow2 & zpool - work"
       uses: actions/download-artifact@v5
       with:
@@ -76,17 +85,6 @@ jobs:
         sudo qemu-nbd --connect "${{ runner.temp }}/dev/work" --format qcow2 "${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
         sudo zpool import -d "${{ runner.temp }}/dev/" work
         zfs get all work
-    - name: "Download artifact qcow2 & zpool - dl"
-      uses: actions/download-artifact@v5
-      with:
-        name: dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        path: ${{ runner.temp }}
-    - name: "Connect qcow2 & import zpool - dl"
-      run: |
-        set -x
-        sudo qemu-nbd --connect "${{ runner.temp }}/dev/dl" --format qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo zpool import -d "${{ runner.temp }}/dev/" dl
-        zfs get all dl
     - name: "Download artifact qcow2 & zpool - host"
       uses: actions/download-artifact@v5
       with:
@@ -139,6 +137,7 @@ jobs:
           --env "ARCH=${{ inputs.arch }}" \
           --env "RECALBOX_VERSION=${{ inputs.tag }}" \
           --env "FORCE_UNSAFE_CONFIGURE=1" \
+          --env "PACKAGE=${{ inputs.build_extra_args }}"
           --user "$(id --user):$(id --group)" \
           recalbox
         then
@@ -189,18 +188,17 @@ jobs:
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/host"
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/dl"
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/output"
+    - name: "Upload artifact qcow2 & zpool - dl"
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.job }}-dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
+        path: ${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
+        compression-level: 0
     - name: "Upload artifact qcow2 & zpool - work"
       uses: actions/upload-artifact@v4
       with:
         name: work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         path: ${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        compression-level: 0
-        overwrite: true
-    - name: "Upload artifact qcow2 & zpool - dl"
-      uses: actions/upload-artifact@v4
-      with:
-        name: dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        path: ${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         compression-level: 0
         overwrite: true
     - name: "Upload artifact qcow2 & zpool - host"

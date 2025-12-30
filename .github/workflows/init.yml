@@ -78,34 +78,6 @@ jobs:
         name: work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         path: ${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         compression-level: 0
-  dl:
-    runs-on: ubuntu-latest
-    steps:
-    # Install dependencies
-    - name: "Install dependencies"
-      run: |
-        sudo apt update
-        sudo apt install --yes zfsutils-linux qemu-utils
-    - name: "Create qcow2 & zpool"
-      run: |
-        set -x
-        sudo modprobe nbd nbds_max=1
-        qemu-img create -f qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2" 64G
-        sudo qemu-nbd --connect /dev/nbd0 --format qcow2 "${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo zpool create -O compression=zstd -m /pool/dl dl /dev/nbd0
-        sudo chown "$USER:$USER" /pool/dl/
-    # Export zpool
-    - name: "Export zpool & Disconnect qcow2"
-      run: |
-        zfs get all dl
-        sudo zpool export dl
-        sudo qemu-nbd --disconnect /dev/nbd0
-    - name: "Upload artifact qcow2 & zpool"
-      uses: actions/upload-artifact@v4
-      with:
-        name: dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        path: ${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        compression-level: 0
   host:
     runs-on: ubuntu-latest
     steps:

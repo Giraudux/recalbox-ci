@@ -13,6 +13,10 @@ on:
         default: 'rpi5_64'
         required: true
         type: string
+      build_extra_args:
+        description: "Build extra args"
+        type: string
+        default: ""
 
 jobs:
   init:
@@ -27,6 +31,7 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
+      build_extra_args: ${{ inputs.build_extra_args }}
   nibble2:
     needs: nibble1
     uses: ./.github/workflows/nibble.yml
@@ -34,6 +39,7 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
+      build_extra_args: ${{ inputs.build_extra_args }}
   nibble3:
     needs: nibble2
     uses: ./.github/workflows/nibble.yml
@@ -41,6 +47,7 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
+      build_extra_args: ${{ inputs.build_extra_args }}
   nibble4:
     needs: nibble3
     uses: ./.github/workflows/nibble.yml
@@ -48,6 +55,7 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
+      build_extra_args: ${{ inputs.build_extra_args }}
   nibble5:
     needs: nibble4
     uses: ./.github/workflows/nibble.yml
@@ -55,6 +63,7 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
+      build_extra_args: ${{ inputs.build_extra_args }}
   nibble6:
     needs: nibble5
     uses: ./.github/workflows/nibble.yml
@@ -62,3 +71,4 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
+      build_extra_args: ${{ inputs.build_extra_args }}
