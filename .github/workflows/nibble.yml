@@ -25,6 +25,9 @@ jobs:
     outputs:
       status: ${{ steps.build.outputs.status }}
     steps:
+    - name: "Debug"
+      run: |
+        echo "${{ github.job }}"
     # Install dependencies
     - name: "Install dependencies"
       run: |
