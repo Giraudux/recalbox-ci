@@ -110,15 +110,16 @@ jobs:
         sudo zpool import -d "${{ runner.temp }}/dev/" output
         zfs get all output
     # Cache
-    - name: "Restore cache from FTP"
-      run: |
-        set +e
-        echo user_allow_other | sudo tee --append /etc/fuse.conf
-        sudo mkdir --parents /pool/ftp/
-        sudo chown "$USER:$USER" /pool/ftp/
-        curlftpfs -s "${{ secrets.CURLFTPFS_HOST }}" /pool/ftp/ -o user="${{ secrets.CURLFTPFS_USER }}" -o allow_other
-        find /pool/ftp/ -type f -printf "%P\0" | xargs --null --replace -- sh -c "mkdir --verbose --parents \"/pool/dl/\$(dirname \"{}\")\" ; ln --verbose --force --symbolic \"/share/ftp/{}\" \"/pool/dl/{}\""
+    # - name: "Restore cache from FTP"
+    #   run: |
+    #     set +e
+    #     echo user_allow_other | sudo tee --append /etc/fuse.conf
+    #     sudo mkdir --parents /pool/ftp/
+    #     sudo chown "$USER:$USER" /pool/ftp/
+    #     curlftpfs -s "${{ secrets.CURLFTPFS_HOST }}" /pool/ftp/ -o user="${{ secrets.CURLFTPFS_USER }}" -o allow_other
+    #     find /pool/ftp/ -type f -printf "%P\0" | xargs --null --replace -- sh -c "mkdir --verbose --parents \"/pool/dl/\$(dirname \"{}\")\" ; ln --verbose --force --symbolic \"/share/ftp/{}\" \"/pool/dl/{}\""
     # Build
+    #      --volume "/pool/ftp/:/share/ftp/" \
     - name: "Build"
       id: build
       run: |
@@ -135,7 +136,6 @@ jobs:
           --volume "/pool/dl/:/share/dl/" \
           --volume "/pool/host/:/share/host/" \
           --volume "/pool/output/build/.npm:/.npm" \
-          --volume "/pool/ftp/:/share/ftp/" \
           --env "ARCH=${{ inputs.arch }}" \
           --env "RECALBOX_VERSION=${{ inputs.tag }}" \
           --env "FORCE_UNSAFE_CONFIGURE=1" \
@@ -161,18 +161,18 @@ jobs:
         ls --human-readable -l "${{ runner.temp }}"
         df --human-readable
     # Cache
-    - name: "Save cache to FTP"
-      run: |
-        set -x
-        set +e
-        for package in /pool/dl/*/
-        do
-          if ! ls "$package"/*/ >/dev/null 2>&1
-          then
-            cp --verbose --update=none --recursive "$package" /pool/ftp/ && rm --verbose --recursive "$package"
-          fi
-        done
-        fusermount -u /pool/ftp/
+    # - name: "Save cache to FTP"
+    #   run: |
+    #     set -x
+    #     set +e
+    #     for package in /pool/dl/*/
+    #     do
+    #       if ! ls "$package"/*/ >/dev/null 2>&1
+    #       then
+    #         cp --verbose --update=none --recursive "$package" /pool/ftp/ && rm --verbose --recursive "$package"
+    #       fi
+    #     done
+    #     fusermount -u /pool/ftp/
     # Export zpool
     - name: "Export zpool & disconnect qcow2"
       run: |
