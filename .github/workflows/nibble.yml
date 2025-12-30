@@ -18,7 +18,7 @@ on:
     outputs:
       status:
         value: ${{ jobs.build.outputs.status }}
-        
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,7 +27,7 @@ jobs:
     steps:
     - name: "Debug"
       run: |
-        echo "${{ github.job }}"
+        echo "${{ job.check_run_id }}"
     # Install dependencies
     - name: "Install dependencies"
       run: |
@@ -194,7 +194,7 @@ jobs:
     - name: "Upload artifact qcow2 & zpool - dl"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.job }}-dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
+        name: ${{ job.check_run_id }}-dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         path: ${{ runner.temp }}/dl-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         compression-level: 0
     - name: "Upload artifact qcow2 & zpool - work"
