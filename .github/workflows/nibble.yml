@@ -116,7 +116,8 @@ jobs:
       id: cache-ccache-restore
       uses: actions/cache/restore@v4
       with:
-        key: ccache-${{ inputs.arch }}
+        key: ccache-${{ inputs.arch }}-${{ github.run_id }}-${{ job.check_run_id }}
+        restore-keys: ccache-${{ inputs.arch }}
         path: ${{ runner.temp }}/ccache/
     # Build
     - name: "Build"
@@ -166,7 +167,7 @@ jobs:
     # Cache
     - name: "Save cache"
       id: cache-ccache-save
-      if: always() && inputs.ccache_on
+      if: inputs.ccache_on
       uses: actions/cache/save@v4
       with:
         key: ${{ steps.cache-ccache-restore.outputs.cache-primary-key }}
