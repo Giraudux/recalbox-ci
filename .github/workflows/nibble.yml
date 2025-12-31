@@ -165,6 +165,17 @@ jobs:
         ls --human-readable -l "${{ runner.temp }}"
         df --human-readable
     # Cache
+    - name: "Clear cache"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -x
+        cache_keys=$(gh cache list --key "ccache-${{ inputs.arch }}" --json id --jq ".[].id")
+        set +e
+        for cache_key in $cache_keys
+        do
+            gh cache delete "$cache_key"
+        done
     - name: "Save cache"
       id: cache-ccache-save
       if: inputs.ccache_on
