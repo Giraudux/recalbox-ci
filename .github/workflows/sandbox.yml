@@ -1,0 +1,20 @@
+name: sandbox
+
+on:
+  workflow_dispatch:
+    inputs:
+      ccache_enable:
+        type: boolean
+        default: true
+      ccache_clear:
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # Install dependencies
+    - run: |
+        set -x
+        echo "var=${{ inputs.ccache_enable && 'yes' || '' }}"
