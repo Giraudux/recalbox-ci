@@ -35,10 +35,9 @@ jobs:
         mkdir --parents "${{ runner.temp }}/dev/" "${{ runner.temp }}/ccache/" "${{ runner.temp }}/dl/"
         sudo apt update
         sudo apt install --yes zfsutils-linux qemu-utils tree
-        sudo modprobe nbd nbds_max=3
+        sudo modprobe nbd nbds_max=2
         ln --symbolic /dev/nbd0 "${{ runner.temp }}/dev/work"
-        ln --symbolic /dev/nbd1 "${{ runner.temp }}/dev/host"
-        ln --symbolic /dev/nbd2 "${{ runner.temp }}/dev/output"
+        ln --symbolic /dev/nbd1 "${{ runner.temp }}/dev/output"
     # Import docker image
     - name: "Download artifact Docker image"
       uses: actions/download-artifact@v5
@@ -80,17 +79,6 @@ jobs:
         sudo qemu-nbd --connect "${{ runner.temp }}/dev/work" --format qcow2 "${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
         sudo zpool import -d "${{ runner.temp }}/dev/" work
         zfs get all work
-    - name: "Download artifact qcow2 & zpool - host"
-      uses: actions/download-artifact@v5
-      with:
-        name: host-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        path: ${{ runner.temp }}
-    - name: "Connect qcow2 & import zpool - host"
-      run: |
-        set -x
-        sudo qemu-nbd --connect "${{ runner.temp }}/dev/host" --format qcow2 "${{ runner.temp }}/host-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
-        sudo zpool import -d "${{ runner.temp }}/dev/" host
-        zfs get all host
     - name: "Download artifact qcow2 & zpool - output"
       uses: actions/download-artifact@v5
       with:
@@ -126,7 +114,6 @@ jobs:
           --volume "/pool/work/recalbox/:/work/" \
           --volume "/pool/output/:/work/output/" \
           --volume "${{ runner.temp }}/dl/:/share/dl/" \
-          --volume "/pool/host/:/share/host/" \
           --volume "/pool/output/build/.npm:/.npm" \
           --volume "${{ runner.temp }}/ccache/:/share/ccache" \
           --env "ARCH=${{ inputs.arch }}" \
@@ -191,14 +178,6 @@ jobs:
         zfs get all work
         sudo zpool export work
         sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/work"
-    - name: "Export zpool & disconnect qcow2 - Host"
-      id: export-zpool-host
-      if: always()
-      run: |
-        set -x
-        zfs get all host
-        sudo zpool export host
-        sudo qemu-nbd --disconnect "${{ runner.temp }}/dev/host"
     - name: "Export zpool & disconnect qcow2 - Output"
       id: export-zpool-output
       if: always()
@@ -219,14 +198,6 @@ jobs:
       with:
         name: work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         path: ${{ runner.temp }}/work-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        compression-level: 0
-        overwrite: true
-    - name: "Upload artifact qcow2 & zpool - host"
-      if: always() && steps.export-zpool-host.outcome == 'success'
-      uses: actions/upload-artifact@v4
-      with:
-        name: host-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
-        path: ${{ runner.temp }}/host-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2
         compression-level: 0
         overwrite: true
     - name: "Upload artifact qcow2 & zpool - output"
