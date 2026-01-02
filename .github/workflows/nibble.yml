@@ -165,7 +165,7 @@ jobs:
         df --human-readable
     # Cache
     - name: "Clear cache"
-      if: always()
+      if: always() && inputs.ccache_on
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
