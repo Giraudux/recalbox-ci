@@ -1,15 +1,13 @@
 diff --git a/package/recalbox-themes/recalbox-themes.mk b/package/recalbox-themes/recalbox-themes.mk
-index 5621d06..34c9c8f 100644
+index 5621d06..ab26497 100644
 --- a/package/recalbox-themes/recalbox-themes.mk
 +++ b/package/recalbox-themes/recalbox-themes.mk
-@@ -18,8 +18,10 @@ define RECALBOX_THEMES_COMMON
+@@ -18,8 +18,6 @@ define RECALBOX_THEMES_COMMON
  	mkdir -p $(TARGET_DIR)/recalbox/share_init/system/.emulationstation/themes/
  	cp -r $(@D)/themes/recalbox-next \
  		$(TARGET_DIR)/recalbox/share_init/system/.emulationstation/themes/
-+	ifneq ($(GITLAB_TOKEN_THEMES),)
- 	cp -r $(@D)/themes/recalbox-next-v9 \
- 		$(TARGET_DIR)/recalbox/share_init/system/.emulationstation/themes/
-+	endif
+-	cp -r $(@D)/themes/recalbox-next-v9 \
+-		$(TARGET_DIR)/recalbox/share_init/system/.emulationstation/themes/
  	cp -r $(@D)/themes/recalbox-goa2 \
  		$(TARGET_DIR)/recalbox/share_init/system/.emulationstation/themes/
  	cp -r $(@D)/themes/recalbox-240p \
