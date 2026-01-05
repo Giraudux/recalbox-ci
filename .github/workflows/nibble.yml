@@ -117,7 +117,7 @@ jobs:
         if docker run --rm --security-opt seccomp=unconfined \
           --name recalbox \
           --volume "/pool/disk0/recalbox/:/work/" \
-          --volume "/pool/disk1/output/build/:/work/output/build/" \
+          --volume "/pool/disk1/output/:/work/output/" \
           --volume "/pool/disk1/.npm/:/.npm/" \
           --volume "${{ runner.temp }}/dl/:/share/dl/" \
           --volume "${{ runner.temp }}/ccache/:/share/ccache" \
