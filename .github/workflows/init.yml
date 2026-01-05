@@ -58,6 +58,7 @@ jobs:
     - name: "Clone recalbox"
       run: |
         git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "/pool/disk0/recalbox/"
+        mkdir --parents /pool/disk1/recalbox/output/
     # Apply patch
     - name: "Checkout patches"
       uses: actions/checkout@v6
@@ -97,7 +98,7 @@ jobs:
         sudo qemu-nbd --connect /dev/nbd0 --format qcow2 "${{ runner.temp }}/disk1-${{ inputs.tag }}-${{ inputs.arch }}.zpool.qcow2"
         sudo zpool create -O compression=zstd -m /pool/disk1 disk1 /dev/nbd0
         sudo chown "$USER:$USER" /pool/disk1/
-        mkdir --parents /pool/disk1/.npm /pool/disk1/output/build/
+        mkdir --parents /pool/disk1/.npm/ /pool/disk1/output/build/
     # Export zpool
     - name: "Export & disconnect disk 1"
       run: |
