@@ -147,7 +147,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: images-${{ inputs.tag }}-${{ inputs.arch }}
-        path: /pool/disk0/output/images/
+        path: /pool/disk1/output/images/
         compression-level: 0
     # Disk space available
     - name: "Available disk space"
