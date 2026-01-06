@@ -18,9 +18,12 @@ on:
       ccache_on:
         type: boolean
         default: true
-      dl_upload_on:
+      upload_dl:
         type: boolean
         default: true
+      debug:
+        type: boolean
+        default: false
     outputs:
       status:
         value: ${{ jobs.build.outputs.status }}
@@ -95,6 +98,7 @@ jobs:
       run: |
         tar -xf ccache.tar.zst
         rm ccache.tar.zst
+        CCACHE_DIR=${{ github.workspace }}/ccache ccache --cleanup
     - name: "Create ccache"
       if: steps.cache-restore-ccache.outputs.cache-hit != 'true'
       run: |
@@ -102,6 +106,14 @@ jobs:
     - name: "Create dl"
       run: |
         mkdir dl/
+    - name: "Debug"
+      if: always() && inputs.debug
+      continue-on-error: true
+      run: |
+        set -x +e
+        df -h
+        du -h * /mnt/*
+        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
     - name: "Build Recalbox"
       id: build
       run: |
@@ -137,7 +149,14 @@ jobs:
             echo "status=continue" >> "$GITHUB_OUTPUT"
           fi
         fi
-        rm -r recalbox/
+    - name: "Debug"
+      if: always() && inputs.debug
+      continue-on-error: true
+      run: |
+        set -x +e
+        df -h
+        du -h * /mnt/*
+        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
     - name: "Upload Recalbox images"
       if: steps.build.outputs.status == 'success'
       uses: actions/upload-artifact@v4
@@ -145,6 +164,10 @@ jobs:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-output
         path: /mnt/output/images/
         compression-level: 0
+    - name: "Clear Recalbox source"
+      if: always()
+      run: |
+        rm -r recalbox/
     - name: "Delete and compress cache"
       if: always() && inputs.ccache_on
       env:
@@ -169,7 +192,7 @@ jobs:
       run: |
         rm -r ccache*
     - name: "Upload artifact dl directory"
-      if: always() && inputs.dl_upload_on
+      if: always() && inputs.upload_dl
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-dl-${{ job.check_run_id }}
