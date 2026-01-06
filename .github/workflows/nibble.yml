@@ -121,7 +121,7 @@ jobs:
           --env "FORCE_UNSAFE_CONFIGURE=1" \
           --env "PACKAGE=BR2_BACKUP_SITE=\"${{ secrets.BR2_BACKUP_SITE }}\" ${{ inputs.build_extra_args }}" \
           --env "RECALBOX_CCACHE_ENABLED=${{ inputs.ccache_on && 'y' || '' }}" \
-          --env "RECALBOX_CCACHE_MAX_SIZE=5G" \
+          --env "RECALBOX_CCACHE_MAX_SIZE=8G" \
           --user "$(id --user):$(id --group)" \
           recalbox
         then
