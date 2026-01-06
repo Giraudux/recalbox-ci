@@ -97,6 +97,9 @@ jobs:
       if: steps.cache-restore-ccache.outputs.cache-hit != 'true'
       run: |
         mkdir ccache/
+    - name: "Create dl"
+      run: |
+        mkdir dl/
     - name: "Build Recalbox"
       id: build
       run: |
