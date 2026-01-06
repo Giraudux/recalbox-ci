@@ -30,9 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.build.outputs.status }}
-      dl_artifact_name: dl-${{ inputs.tag }}-${{ inputs.arch }}-${{ job.check_run_id }}
+      dl_artifact_name: ${{ steps.output-dl-artifact-name.outputs.dl_artifact_name }}
     steps:
     - name: "Output dl artifact name"
+      id: output-dl-artifact-name
       run: echo "dl_artifact_name=dl-${{ inputs.tag }}-${{ inputs.arch }}-${{ job.check_run_id }}" >> "$GITHUB_OUTPUT"
     - name: "Free disk space"
       uses: endersonmenezes/free-disk-space@v3
