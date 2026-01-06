@@ -98,7 +98,7 @@ jobs:
       run: |
         tar -xf ccache.tar.zst
         rm ccache.tar.zst
-        CCACHE_DIR=${{ github.workspace }}/ccache ccache --cleanup
+#        CCACHE_DIR=${{ github.workspace }}/ccache ccache --cleanup
     - name: "Create ccache"
       if: steps.cache-restore-ccache.outputs.cache-matched-key == ''
       run: |
@@ -113,7 +113,7 @@ jobs:
         set -x +e
         df -h
         du -hs ccache/ dl/recalbox/ /mnt/output/
-        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
+#        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
     - name: "Build Recalbox"
       id: build
       run: |
@@ -156,7 +156,7 @@ jobs:
         set -x +e
         df -h
         du -hs ccache/ dl/recalbox/ /mnt/output/
-        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
+#        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
     - name: "Upload Recalbox images"
       if: steps.build.outputs.status == 'success'
       uses: actions/upload-artifact@v4
