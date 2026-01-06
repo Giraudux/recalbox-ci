@@ -68,12 +68,12 @@ jobs:
     - name: "Download Recalbox source"
       uses: actions/download-artifact@v5
       with:
-        name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-source
-        path: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-source.tar.zst
+        name: recalbox-${{ inputs.tag }}-source
+        path: recalbox-${{ inputs.tag }}-source.tar.zst
     - name: "Extract Recalbox source"
       run: |
-        tar -xf "recalbox-${{ inputs.tag }}-${{ inputs.arch }}-source.tar.zst"
-        rm "recalbox-${{ inputs.tag }}-${{ inputs.arch }}-source.tar.zst"
+        tar -xf "recalbox-${{ inputs.tag }}-source.tar.zst"
+        rm "recalbox-${{ inputs.tag }}-source.tar.zst"
     - name: "Download Recalbox Docker image"
       uses: actions/download-artifact@v5
       with:
