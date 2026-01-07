@@ -7,8 +7,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: "Free disk space"
+      uses: endersonmenezes/free-disk-space@v3
+      with:
+        remove_swap: true
     - run: |
         set -x +e
-        readonly dev=$(findmnt --noheadings --output SOURCE /mnt/)
-        fuser -vm /mnt/
-        umount -vvv --force /mnt/
+        sudo apt update
+        sudo apt install --yes zfsutils-linux
+        readonly device=$(lsblk --noheadings --output PKNAME "$(findmnt --noheadings --output SOURCE /mnt/)")
+        sudo umount /mnt/
+        sudo zpool create -O compression=zstd mnt "/dev/$device"
+        sudo chown "$USER:$USER" /mnt/
+        touch /mnt/hello
+        df
