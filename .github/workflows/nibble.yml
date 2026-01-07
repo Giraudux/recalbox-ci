@@ -38,7 +38,7 @@ jobs:
     - name: "Install dependencies"
       run: |
         sudo apt update
-        sudo apt install -y ccache
+        sudo apt install --yes ccache zfsutils-linux
     - name: "Free disk space"
       uses: endersonmenezes/free-disk-space@v3
       with:
@@ -53,6 +53,13 @@ jobs:
         rm_cmd: "rmz"
         rmz_version: "3.1.1"
         testing: false
+    - name: "Create ZFS"
+      run: |
+        set -x
+        readonly device=$(lsblk --noheadings --output PKNAME "$(findmnt --noheadings --output SOURCE /mnt/)")
+        sudo umount /mnt/
+        sudo zpool create -O compression=zstd mnt "/dev/$device"
+        sudo chown "$USER:$USER" /mnt/
     - name: "Download output"
       id: download-recalbox-output
       continue-on-error: true
