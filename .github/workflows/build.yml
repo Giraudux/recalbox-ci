@@ -47,7 +47,7 @@ jobs:
     uses: ./.github/workflows/upload_dl.yml
     secrets: inherit
     with:
-      dl_artifact_name: "${{ needs.nibble1.outputs.dl_artifact_name }}"
+      dl_artifact_name: ${{ needs.nibble1.outputs.dl_artifact_name }}
   nibble2:
     needs: nibble1
     if: needs.nibble1.outputs.status == 'continue'

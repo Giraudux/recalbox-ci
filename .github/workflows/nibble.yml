@@ -11,7 +11,7 @@ on:
         type: string
       timeout:
         type: number
-        default: 16200 # 4.5 hours
+        default: 14400 # 4 hours
       build_extra_args:
         type: string
         default: ""
@@ -27,6 +27,8 @@ on:
     outputs:
       status:
         value: ${{ jobs.build.outputs.status }}
+      dl_artifact_name:
+        value: ${{ jobs.build.outputs.dl_artifact_name }}
 
 jobs:
   build:
@@ -179,7 +181,7 @@ jobs:
       run: |
         rm -rf recalbox/
     - name: "Delete previous cache"
-      if: always() && inputs.ccache
+      if: inputs.ccache
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -191,11 +193,11 @@ jobs:
             gh cache delete --repo "${{ github.repository }}" "$cache_key"
         done
     - name: "Compress cache"
-      if: always() && inputs.ccache
+      if: inputs.ccache
       run: |
         tar --remove-files -caf ccache.tar.zst ccache/
     - name: "Save cache"
-      if: always() && inputs.ccache
+      if: inputs.ccache
       uses: actions/cache/save@v4
       with:
         key: ${{ steps.cache-restore-ccache.outputs.cache-primary-key }}
