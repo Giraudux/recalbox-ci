@@ -15,7 +15,7 @@ on:
       build_extra_args:
         type: string
         default: ""
-      ccache_on:
+      ccache:
         type: boolean
         default: true
       upload_dl:
@@ -33,11 +33,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.build.outputs.status }}
-      dl_artifact_name: ${{ steps.output-dl-artifact-name.outputs.dl_artifact_name }}
+      dl_artifact_name: dl-${{ inputs.tag }}-${{ inputs.arch }}-${{ job.check_run_id }}
     steps:
-    - name: "Output dl artifact name"
-      id: output-dl-artifact-name
-      run: echo "dl_artifact_name=dl-${{ inputs.tag }}-${{ inputs.arch }}-${{ job.check_run_id }}" >> "$GITHUB_OUTPUT"
+    - name: "Install dependencies"
+      run: |
+        sudo apt update
+        sudo apt install -y ccache
     - name: "Free disk space"
       uses: endersonmenezes/free-disk-space@v3
       with:
@@ -52,41 +53,41 @@ jobs:
         rm_cmd: "rmz"
         rmz_version: "3.1.1"
         testing: false
-    - name: "Download Recalbox output"
+    - name: "Download output"
       id: download-recalbox-output
       continue-on-error: true
       uses: actions/download-artifact@v5
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-output
-    - name: "Extract Recalbox output"
+    - name: "Extract output"
       if: steps.download-recalbox-output.outcome == 'success'
       run: |
         sudo chown "$USER:$USER" /mnt/
         tar -xf "recalbox-${{ inputs.tag }}-${{ inputs.arch }}-output.tar.zst" -C /mnt/
         rm "recalbox-${{ inputs.tag }}-${{ inputs.arch }}-output.tar.zst"
-    - name: "Create Recalbox output"
+    - name: "Create output"
       if: steps.download-recalbox-output.outcome != 'success'
       run: |
         sudo chown "$USER:$USER" /mnt/
         mkdir -p /mnt/output/build/.npm/
-    - name: "Download Recalbox source"
+    - name: "Download source"
       uses: actions/download-artifact@v5
       with:
         name: recalbox-${{ inputs.tag }}-source
-    - name: "Extract Recalbox source"
+    - name: "Extract source"
       run: |
         tar -xf "recalbox-${{ inputs.tag }}-source.tar.zst"
         rm "recalbox-${{ inputs.tag }}-source.tar.zst"
-    - name: "Download Recalbox Docker image"
+    - name: "Download Docker image"
       uses: actions/download-artifact@v5
       with:
         name: recalbox-${{ inputs.tag }}-docker-image
-    - name: "Load Recalbox Docker image"
+    - name: "Load Docker image"
       run: |
         zstdcat "recalbox-${{ inputs.tag }}-docker-image.tar.zst" | docker load
         rm "recalbox-${{ inputs.tag }}-docker-image.tar.zst"
     - name: "Restore ccache"
-      if: inputs.ccache_on
+      if: inputs.ccache
       id: cache-restore-ccache
       uses: actions/cache/restore@v4
       with:
@@ -94,13 +95,13 @@ jobs:
         restore-keys: ccache
         path: ccache.tar.zst
     - name: "Extract ccache"
-      if: steps.cache-restore-ccache.outputs.cache-matched-key != ''
+      if: inputs.ccache && steps.cache-restore-ccache.outputs.cache-matched-key != ''
       run: |
         tar -xf ccache.tar.zst
         rm ccache.tar.zst
-#        CCACHE_DIR=${{ github.workspace }}/ccache ccache --cleanup
+        CCACHE_DIR=${{ github.workspace }}/ccache ccache --cleanup
     - name: "Create ccache"
-      if: steps.cache-restore-ccache.outputs.cache-matched-key == ''
+      if: inputs.ccache && steps.cache-restore-ccache.outputs.cache-matched-key == ''
       run: |
         mkdir ccache/
     - name: "Create dl"
@@ -111,9 +112,10 @@ jobs:
       continue-on-error: true
       run: |
         set -x +e
+        ls -l
         df -h
-        du -hs ccache/ dl/recalbox/ /mnt/output/
-#        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
+        du -hs ccache/ dl/ recalbox/ /mnt/output/
+        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
     - name: "Build Recalbox"
       id: build
       run: |
@@ -133,7 +135,7 @@ jobs:
           --env "RECALBOX_VERSION=${{ inputs.tag }}" \
           --env "FORCE_UNSAFE_CONFIGURE=1" \
           --env "PACKAGE=BR2_BACKUP_SITE=\"${{ secrets.BR2_BACKUP_SITE }}\" ${{ inputs.build_extra_args }}" \
-          --env "RECALBOX_CCACHE_ENABLED=${{ inputs.ccache_on && 'y' || '' }}" \
+          --env "RECALBOX_CCACHE_ENABLED=${{ inputs.ccache && 'y' || '' }}" \
           --env "RECALBOX_CCACHE_MAX_SIZE=8G" \
           --user "$(id --user):$(id --group)" \
           recalbox
@@ -154,53 +156,66 @@ jobs:
       continue-on-error: true
       run: |
         set -x +e
+        ls -l
         df -h
-        du -hs ccache/ dl/recalbox/ /mnt/output/
+        du -hs ccache/ dl/ recalbox/ /mnt/output/
 #        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
-    - name: "Upload Recalbox images"
+    - name: "Upload images"
       if: steps.build.outputs.status == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-output
         path: /mnt/output/images/
         compression-level: 0
-    - name: "Clear Recalbox source"
+    - name: "Clear source"
       if: always()
       run: |
-        rm -r recalbox/
-    - name: "Delete and compress cache"
-      if: always() && inputs.ccache_on
+        rm -rf recalbox/
+    - name: "Delete previous cache"
+      if: always() && inputs.ccache
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -x
-        tar --remove-files -caf ccache.tar.zst ccache/
-        set +e
         cache_keys=$(gh cache list --repo "${{ github.repository }}" --key ccache --json id --jq ".[].id")
+        set +e
         for cache_key in $cache_keys
         do
             gh cache delete --repo "${{ github.repository }}" "$cache_key"
         done
+    - name: "Compress cache"
+      if: always() && inputs.ccache
+      run: |
+        tar --remove-files -caf ccache.tar.zst ccache/
     - name: "Save cache"
-      if: always() && inputs.ccache_on
+      if: always() && inputs.ccache
       uses: actions/cache/save@v4
       with:
         key: ${{ steps.cache-restore-ccache.outputs.cache-primary-key }}
         path: ccache.tar.zst
     - name: "Clear cache"
-      if: always() && inputs.ccache_on
+      if: always() && inputs.ccache
       run: |
-        rm -r ccache*
-    - name: "Upload artifact dl directory"
+        rm -rf ccache/ ccache.tar.zst
+    - name: "Prepare dl"
+      if: always() && inputs.upload_dl
+      run: |
+        find dl/ -mindepth 2 -maxdepth 2 -type d -exec rm -rf "{}" \;
+    - name: "Upload dl"
       if: always() && inputs.upload_dl
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-dl-${{ job.check_run_id }}
         path: dl/
-    - name: "Compress Recalbox output"
+        compression-level: 0
+    - name: "Clear dl"
+      if: always()
+      run: |
+        rm -rf dl/
+    - name: "Compress output"
       run: |
         tar -caf recalbox-${{ inputs.tag }}-${{ inputs.arch }}-output.tar.zst -C /mnt/ output/
-    - name: "Upload Recalbox output"
+    - name: "Upload output"
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-output
