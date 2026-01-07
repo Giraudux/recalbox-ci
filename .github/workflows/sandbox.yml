@@ -13,6 +13,7 @@ jobs:
         sudo apt install --yes zfsutils-linux
         readonly dev=$(findmnt --noheadings --output SOURCE /mnt/)
         sudo umount "$dev"
+        lsof | grep "$dev"
         sudo zpool create -O compression=zstd mnt "$dev"
         sudo chown "$USER:$USER" /mnt/
         touch /mnt/hello
