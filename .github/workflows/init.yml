@@ -11,26 +11,26 @@ jobs:
   init:
     runs-on: ubuntu-latest
     steps:
-    - name: "Cache Recalbox source"
+    - name: "Cache source"
       id: cache-recalbox-source
       uses: actions/cache@v4
       with:
         key: recalbox-${{ inputs.tag }}-source
         path: recalbox-${{ inputs.tag }}-source.tar.zst
-    - name: "Cache Recalbox Docker image"
+    - name: "Cache Docker image"
       id: cache-recalbox-docker-image
       uses: actions/cache@v4
       with:
         key: recalbox-${{ inputs.tag }}-docker-image
         path: recalbox-${{ inputs.tag }}-docker-image.tar.zst
-    - name: "Extract Recalbox source"
+    - name: "Extract source"
       if: steps.cache-recalbox-source.outputs.cache-hit == 'true' && steps.cache-recalbox-docker-image.outputs.cache-hit != 'true'
       run: |
         tar -xf "recalbox-${{ inputs.tag }}-source.tar.zst"
     - name: "Checkout patches"
       if: steps.cache-recalbox-source.outputs.cache-hit != 'true'
       uses: actions/checkout@v6
-    - name: "Checkout Recalbox source"
+    - name: "Checkout source"
       if: steps.cache-recalbox-source.outputs.cache-hit != 'true'
       run: |
         git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git recalbox/
@@ -39,18 +39,18 @@ jobs:
         git -C recalbox/ apply ../patch/libretro-melonds.patch
         git -C recalbox/ apply ../patch/libretro-tamalibretro.patch
         tar -caf "recalbox-${{ inputs.tag }}-source.tar.zst" recalbox/
-    - name: "Build Recalbox Docker image"
+    - name: "Build Docker image"
       if: steps.cache-recalbox-docker-image.outputs.cache-hit != 'true'
       run: |
         docker build --tag recalbox recalbox/
         docker save recalbox | zstd -o "recalbox-${{ inputs.tag }}-docker-image.tar.zst"
-    - name: "Upload Recalbox source"
+    - name: "Upload source"
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-${{ inputs.tag }}-source
         path: recalbox-${{ inputs.tag }}-source.tar.zst
         compression-level: 0
-    - name: "Upload Recalbox Docker image"
+    - name: "Upload Docker image"
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-${{ inputs.tag }}-docker-image

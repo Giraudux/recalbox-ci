@@ -116,7 +116,7 @@ jobs:
         df -h
         du -hs ccache/ dl/ recalbox/ /mnt/output/
         CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
-    - name: "Build Recalbox"
+    - name: "Build"
       id: build
       run: |
         set -x
