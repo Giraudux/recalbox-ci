@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.build.outputs.status }}
-      dl_artifact_name: dl-${{ inputs.tag }}-${{ inputs.arch }}-${{ job.check_run_id }}
+      dl_artifact_name: recalbox-dl-${{ github.run_id }}-${{ job.check_run_id }}
     steps:
     - name: "Install dependencies"
       run: |
@@ -217,7 +217,7 @@ jobs:
       if: inputs.upload_dl
       uses: actions/upload-artifact@v4
       with:
-        name: recalbox-dl-${{ job.check_run_id }}
+        name: recalbox-dl-${{ github.run_id }}-${{ job.check_run_id }}
         path: dl/
         compression-level: 0
     - name: "Clear dl"
