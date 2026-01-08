@@ -168,7 +168,7 @@ jobs:
         ls -l
         df -h
         du -hs ccache/ dl/ recalbox/ /mnt/output/
-#        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
+        CCACHE_DIR=${{ github.workspace }}/ccache ccache -s
     - name: "Upload images"
       if: steps.build.outputs.status == 'success'
       uses: actions/upload-artifact@v4
