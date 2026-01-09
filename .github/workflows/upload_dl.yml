@@ -15,6 +15,7 @@ jobs:
     - uses: actions/download-artifact@v5
       with:
         name: ${{ inputs.dl_artifact_name }}
+        path: dl/
     - run: |
         gpg --decrypt --batch --passphrase="${{ secrets.DL_UPLOAD_GPG_PASSPHRASE }}" --output=bin/dl-upload bin/dl-upload.gpg
         chmod +x bin/dl-upload
