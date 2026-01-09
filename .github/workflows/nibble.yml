@@ -105,12 +105,10 @@ jobs:
       with:
         key: ccache-${{ github.run_id }}-${{ job.check_run_id }}
         restore-keys: ccache
-        path: ccache.tar.zst
-    - name: "Extract ccache"
+        path: ccache/
+    - name: "Cleanup ccache"
       if: inputs.ccache && steps.cache-restore-ccache.outputs.cache-matched-key != ''
       run: |
-        tar -xf ccache.tar.zst
-        rm ccache.tar.zst
         CCACHE_DIR=${{ github.workspace }}/ccache ccache -M "${{ inputs.ccache_size }}G" --cleanup
     - name: "Create ccache"
       if: inputs.ccache && steps.cache-restore-ccache.outputs.cache-matched-key == ''
@@ -195,20 +193,16 @@ jobs:
         do
             gh cache delete --repo "${{ github.repository }}" "$cache_key"
         done
-    - name: "Compress cache"
-      if: inputs.ccache
-      run: |
-        tar --remove-files -caf ccache.tar.zst ccache/
     - name: "Save cache"
       if: inputs.ccache
       uses: actions/cache/save@v4
       with:
         key: ${{ steps.cache-restore-ccache.outputs.cache-primary-key }}
-        path: ccache.tar.zst
+        path: ccache/
     - name: "Clear cache"
       if: inputs.ccache
       run: |
-        rm -rf ccache/ ccache.tar.zst
+        rm -rf ccache/
     - name: "Prepare dl"
       if: inputs.upload_dl
       run: |
