@@ -7,17 +7,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: "Free disk space"
-      uses: endersonmenezes/free-disk-space@v3
-      with:
-        remove_swap: true
     - run: |
-        set -x +e
         sudo apt update
-        sudo apt install --yes zfsutils-linux
-        readonly device=$(lsblk --noheadings --output PKNAME "$(findmnt --noheadings --output SOURCE /mnt/)")
-        sudo umount /mnt/
-        sudo zpool create -O compression=zstd mnt "/dev/$device"
-        sudo chown "$USER:$USER" /mnt/
-        touch /mnt/hello
-        df
+        sudo apt install -y tree
+        mkdir dl/
+        touch dl/test
+    - name: "Upload dl"
+      uses: actions/upload-artifact@v4
+      with:
+        name: recalbox-dl-${{ github.run_id }}-${{ job.check_run_id }}
+        path: dl/
+        compression-level: 0
+    - uses: actions/download-artifact@v5
+      with:
+        name: recalbox-dl-${{ github.run_id }}-${{ job.check_run_id }}
+    - run: |
+        tree
