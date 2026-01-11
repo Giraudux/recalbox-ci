@@ -20,7 +20,8 @@ jobs:
     - id: download-ccache
       continue-on-error: true
       run: |
-        wget --directory-prefix=/mnt/ "${{ secrets.BR2_BACKUP_SITE }}/recalbox-${{ inputs.arch }}-ccache.tar.zst"
+        echo "::add-mask::${{ secrets.MASK_0 }}"
+        wget --directory-prefix=/mnt/ "${{ secrets.BR2_BACKUP_SITE }}/ccache/recalbox-${{ inputs.arch }}-ccache.tar.zst"
     - uses: actions/upload-artifact@v4
       if: steps.download-ccache.outcome == 'success'
       with:
