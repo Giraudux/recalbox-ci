@@ -55,101 +55,101 @@ jobs:
     secrets: inherit
     with:
       arch: ${{ inputs.arch }}
-  nibble1:
+  make1:
     needs: [init, download]
-    uses: ./.github/workflows/nibble.yml
+    uses: ./.github/workflows/make.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-  upload_nibble1:
-    needs: nibble1
+  upload1:
+    needs: make1
     if: inputs.remote_storage
     uses: ./.github/workflows/upload.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-  nibble2:
-    needs: nibble1
-    if: needs.nibble1.outputs.status == 'continue'
-    uses: ./.github/workflows/nibble.yml
+  make2:
+    needs: make1
+    if: needs.make1.outputs.status == 'continue'
+    uses: ./.github/workflows/make.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-  upload_nibble2:
-    needs: [nibble2, upload_nibble1]
+  upload2:
+    needs: [make2, upload1]
     if: inputs.remote_storage
     uses: ./.github/workflows/upload.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-  nibble3:
-    needs: nibble2
-    if: needs.nibble2.outputs.status == 'continue'
-    uses: ./.github/workflows/nibble.yml
+  make3:
+    needs: make2
+    if: needs.make2.outputs.status == 'continue'
+    uses: ./.github/workflows/make.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-  upload_nibble3:
-    needs: [nibble3, upload_nibble2]
+  upload3:
+    needs: [make3, upload2]
     if: inputs.remote_storage
     uses: ./.github/workflows/upload.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-  nibble4:
-    needs: nibble3
-    if: needs.nibble3.outputs.status == 'continue'
-    uses: ./.github/workflows/nibble.yml
+  make4:
+    needs: make3
+    if: needs.make3.outputs.status == 'continue'
+    uses: ./.github/workflows/make.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-  upload_nibble4:
-    needs: [nibble4, upload_nibble3]
+  upload4:
+    needs: [make4, upload3]
     if: inputs.remote_storage
     uses: ./.github/workflows/upload.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-  nibble5:
-    needs: nibble4
-    if: needs.nibble4.outputs.status == 'continue'
-    uses: ./.github/workflows/nibble.yml
+  make5:
+    needs: make4
+    if: needs.make4.outputs.status == 'continue'
+    uses: ./.github/workflows/make.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-  upload_nibble5:
-    needs: [nibble5, upload_nibble4]
+  upload5:
+    needs: [make5, upload4]
     if: inputs.remote_storage
     uses: ./.github/workflows/upload.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-  nibble6:
-    needs: nibble5
-    if: needs.nibble5.outputs.status == 'continue'
-    uses: ./.github/workflows/nibble.yml
+  make6:
+    needs: make5
+    if: needs.make5.outputs.status == 'continue'
+    uses: ./.github/workflows/make.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-  upload_nibble6:
-    needs: [nibble6, upload_nibble5]
+  upload6:
+    needs: [make6, upload5]
     if: inputs.remote_storage
     uses: ./.github/workflows/upload.yml
     secrets: inherit
