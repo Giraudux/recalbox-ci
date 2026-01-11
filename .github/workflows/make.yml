@@ -21,6 +21,9 @@ on:
       ccache_size:
         type: number
         default: 8
+      release:
+        default: false
+        type: boolean
     outputs:
       status:
         value: ${{ jobs.build.outputs.status }}
@@ -168,6 +171,12 @@ jobs:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-images
         path: /mnt/output/images/
         compression-level: 0
+    - name: "Upload release"
+      if: steps.build.outputs.status == 'success' && inputs.release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release upload "${{ inputs.tag }}" /mnt/output/images/*
     - name: "Clear source"
       run: |
         rm -rf recalbox/

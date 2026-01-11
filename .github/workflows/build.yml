@@ -18,6 +18,9 @@ on:
       skip_init:
         type: boolean
         default: true
+      release:
+        default: true
+        type: boolean
   workflow_dispatch:
     inputs:
       tag:
@@ -42,6 +45,10 @@ on:
         description: "Skip init"
         type: boolean
         default: false
+      release:
+        description: "Create release"
+        default: false
+        type: boolean
 
 jobs:
   init:
@@ -49,6 +56,7 @@ jobs:
     uses: ./.github/workflows/init.yml
     with:
       tag: ${{ inputs.tag }}
+      release: ${{inputs.release }}
   download:
     if: inputs.remote_storage
     uses: ./.github/workflows/download.yml
@@ -63,6 +71,7 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
+      release: ${{inputs.release }}
   upload1:
     needs: make1
     if: inputs.remote_storage
@@ -80,6 +89,7 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
+      release: ${{inputs.release }}
   upload2:
     needs: [make2, upload1]
     if: inputs.remote_storage
@@ -97,6 +107,7 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
+      release: ${{inputs.release }}
   upload3:
     needs: [make3, upload2]
     if: inputs.remote_storage
@@ -114,6 +125,7 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
+      release: ${{inputs.release }}
   upload4:
     needs: [make4, upload3]
     if: inputs.remote_storage
@@ -131,6 +143,7 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
+      release: ${{inputs.release }}
   upload5:
     needs: [make5, upload4]
     if: inputs.remote_storage
@@ -148,6 +161,7 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
+      release: ${{inputs.release }}
   upload6:
     needs: [make6, upload5]
     if: inputs.remote_storage

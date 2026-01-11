@@ -6,6 +6,9 @@ on:
       tag:
         required: true
         type: string
+      release:
+        default: false
+        type: boolean
 
 jobs:
   init:
@@ -24,7 +27,7 @@ jobs:
         key: recalbox-${{ inputs.tag }}-docker-image
         path: recalbox-${{ inputs.tag }}-docker-image.tar.zst
     - name: "Extract source"
-      if: steps.cache-recalbox-source.outputs.cache-hit == 'true' && steps.cache-recalbox-docker-image.outputs.cache-hit != 'true'
+      if: steps.cache-recalbox-source.outputs.cache-hit == 'true' && (steps.cache-recalbox-docker-image.outputs.cache-hit != 'true' || inputs.release)
       run: |
         tar -xf "recalbox-${{ inputs.tag }}-source.tar.zst"
     - name: "Checkout patches"
@@ -37,6 +40,12 @@ jobs:
         git -C recalbox/ apply ${{ github.workspace }}/patch/docker-ccache.patch
         git -C recalbox/ apply ${{ github.workspace }}/patch/recalbox-themes.patch
         tar -caf "recalbox-${{ inputs.tag }}-source.tar.zst" recalbox/
+    - name: "Create release"
+      if: inputs.release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "${{ inputs.tag }}" --notes-file=recalbox/RELEASE-NOTES.md
     - name: "Build Docker image"
       if: steps.cache-recalbox-docker-image.outputs.cache-hit != 'true'
       run: |
