@@ -102,12 +102,12 @@ jobs:
       run: |
         tar -xf "recalbox-${{ inputs.arch }}-ccache.tar.zst"
         rm "recalbox-${{ inputs.arch }}-ccache.tar.zst"
-        CCACHE_DIR="${{ github.workspace }}/ccache ccache" -M "${{ inputs.ccache_size }}G" --cleanup
+        CCACHE_DIR="${{ github.workspace }}/ccache" ccache -M "${{ inputs.ccache_size }}G" --cleanup
     - name: "Create ccache"
       if: inputs.ccache && steps.download-ccache.outcome != 'success'
       run: |
         mkdir ccache/
-        CCACHE_DIR="${{ github.workspace }}/ccache ccache" -M "${{ inputs.ccache_size }}G"
+        CCACHE_DIR="${{ github.workspace }}/ccache" ccache -M "${{ inputs.ccache_size }}G"
     - name: "Create dl"
       run: |
         mkdir dl/
