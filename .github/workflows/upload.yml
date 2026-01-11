@@ -1,0 +1,31 @@
+name: upload
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: endersonmenezes/free-disk-space@v3
+      with:
+        remove_swap: true
+    - uses: actions/checkout@v6
+    - run: |
+        sudo chown "$USER:$USER" /mnt/
+        gpg --decrypt --batch --passphrase="${{ secrets.REMOTE_STORAGE_GPG_PASSPHRASE }}" --output=bin/remote-storage bin/remote-storage.gpg
+        chmod +x bin/remote-storage
+    - uses: actions/download-artifact@v5
+      with:
+        name: recalbox-${{ inputs.arch }}-dl
+        path: /mnt/dl/
+    - run: |
+        cd /mnt/dl/
+        find . -maxdepth 2 -type f -exec sh -c "wget --spider '${{ secrets.BR2_BACKUP_SITE }}/$1' || '${{ github.workspace }}/bin/remote-storage' upload '$1'" shell {} \;

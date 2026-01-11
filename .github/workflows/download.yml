@@ -1,0 +1,29 @@
+name: download
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        required: true
+        type: string
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: endersonmenezes/free-disk-space@v3
+      with:
+        remove_swap: true
+    - uses: actions/checkout@v6
+    - run: |
+        sudo chown "$USER:$USER" /mnt/
+    - id: download-ccache
+      continue-on-error: true
+      run: |
+        wget --directory-prefix=/mnt/ "${{ secrets.BR2_BACKUP_SITE }}/recalbox-${{ inputs.arch }}-ccache.tar.zst"
+    - uses: actions/upload-artifact@v4
+      if: steps.download-ccache.outcome == 'success'
+      with:
+        name: recalbox-${{ inputs.arch }}-ccache
+        path: /mnt/recalbox-${{ inputs.arch }}-ccache.tar.zst
+        compression-level: 0
