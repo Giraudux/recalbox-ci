@@ -21,6 +21,10 @@ on:
         description: "Use remote storage"
         type: boolean
         default: true
+      skip_init:
+        description: "Skip init"
+        type: boolean
+        default: false
       debug:
         description: "Debug"
         type: boolean
@@ -28,6 +32,7 @@ on:
 
 jobs:
   init:
+    if: ! inputs.skip_init
     uses: ./.github/workflows/init.yml
     with:
       tag: ${{ inputs.tag }}
