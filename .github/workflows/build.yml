@@ -1,6 +1,23 @@
 name: build
 
 on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      build_extra_args:
+        type: string
+        default: ""
+      remote_storage:
+        type: boolean
+        default: true
+      skip_init:
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       tag:
@@ -25,10 +42,6 @@ on:
         description: "Skip init"
         type: boolean
         default: false
-      debug:
-        description: "Debug"
-        type: boolean
-        default: false
 
 jobs:
   init:
@@ -50,7 +63,6 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-      debug: ${{ inputs.debug }}
   upload_nibble1:
     needs: nibble1
     if: inputs.remote_storage
@@ -68,7 +80,6 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-      debug: ${{ inputs.debug }}
   upload_nibble2:
     needs: [nibble2, upload_nibble1]
     if: inputs.remote_storage
@@ -86,7 +97,6 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-      debug: ${{ inputs.debug }}
   upload_nibble3:
     needs: [nibble3, upload_nibble2]
     if: inputs.remote_storage
@@ -104,7 +114,6 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-      debug: ${{ inputs.debug }}
   upload_nibble4:
     needs: [nibble4, upload_nibble3]
     if: inputs.remote_storage
@@ -122,7 +131,6 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-      debug: ${{ inputs.debug }}
   upload_nibble5:
     needs: [nibble5, upload_nibble4]
     if: inputs.remote_storage
@@ -140,7 +148,6 @@ jobs:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
       build_extra_args: ${{ inputs.build_extra_args }}
-      debug: ${{ inputs.debug }}
   upload_nibble6:
     needs: [nibble6, upload_nibble5]
     if: inputs.remote_storage
