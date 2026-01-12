@@ -16,8 +16,11 @@ on:
         type: boolean
         default: true
       release:
-        default: ''
         type: string
+        default: ''
+      init:
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       tag:
@@ -42,9 +45,14 @@ on:
         description: "Create and upload release"
         default: ''
         type: string
+      init:
+        description: "Run init"
+        type: boolean
+        default: true
 
 jobs:
   init:
+    if: inputs.init
     uses: ./.github/workflows/init.yml
     with:
       tag: ${{ inputs.tag }}

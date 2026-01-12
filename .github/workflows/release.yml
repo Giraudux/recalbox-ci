@@ -1,0 +1,39 @@
+name: release
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+jobs:
+  tag:
+    runs-on: ubuntu-slim
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+    - id: tag
+      run: |
+        set -x
+        if [ -z "${{ inputs.tag }}" ] && tag=$(curl -s https://gitlab.com/api/v4/projects/2396494/releases/ | jq -r .[0].tag_name)
+        then
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        fi
+        echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+  init:
+    needs: tag
+    uses: ./.github/workflows/init.yml
+    with:
+      tag: ${{ inputs.tag }}
+      release: ${{ needs.tag.outputs.tag }}
+  build:
+    needs: [init, tag]
+    strategy:
+      matrix:
+        arch: [odroidgo2, rg353x, rpi3, rpi4_64, rpi5_64, rpizero2, x86_64]
+    uses: ./.github/workflows/build.yml
+    with:
+      tag: ${{ needs.tag.outputs.tag }}
+      arch: ${{ matrix.arch }}
+      release: ${{ needs.tag.outputs.tag }}

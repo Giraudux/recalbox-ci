@@ -22,8 +22,8 @@ on:
         type: number
         default: 8
       release:
-        default: ''
         type: string
+        default: ''
     outputs:
       status:
         value: ${{ jobs.build.outputs.status }}
@@ -196,7 +196,7 @@ jobs:
     - name: "Export Recalbox"
       run: |
         sudo zfs snapshot "mnt@make-${{ job.check_run_id }}"
-        sudo zfs send "mnt@make-${{ job.check_run_id }}" | zstd -o "recalbox-${{ inputs.tag }}.zfs.zst"
+        sudo zfs send "mnt@make-${{ job.check_run_id }}" | zstd --fast -o "recalbox-${{ inputs.tag }}.zfs.zst"
     - name: "Upload Recalbox"
       uses: actions/upload-artifact@v4
       with:
