@@ -160,12 +160,12 @@ jobs:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}-images
         path: /mnt/output/images/
         compression-level: 0
-    - name: "Upload release"
-      if: steps.build.outputs.status == 'success' && inputs.release != ''
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release upload "${{ inputs.release }}" /mnt/output/images/*
+    # - name: "Upload release"
+    #   if: steps.build.outputs.status == 'success' && inputs.release != ''
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   run: |
+    #     gh release upload "${{ inputs.release }}" /mnt/output/images/*
     - name: "Compress ccache"
       run: |
         tar --remove-files -caf recalbox-${{ inputs.arch }}-ccache.tar.zst ccache/

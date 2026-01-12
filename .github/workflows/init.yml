@@ -52,9 +52,9 @@ jobs:
         name: recalbox-${{ inputs.tag }}
         path: recalbox-${{ inputs.tag }}.zfs
         compression-level: 0
-    - name: "Create release"
-      if: inputs.release != ''
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release create "${{ inputs.release }}" --notes-file=recalbox/RELEASE-NOTES.md
+    # - name: "Create release"
+    #   if: inputs.release != ''
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   run: |
+    #     gh release create "${{ inputs.release }}" --notes-file=/mnt/recalbox/RELEASE-NOTES.md
