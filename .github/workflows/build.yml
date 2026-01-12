@@ -64,6 +64,7 @@ jobs:
     with:
       arch: ${{ inputs.arch }}
   make1:
+    if: always() && (needs.init.result == 'success' || needs.init.result == 'skipped')
     needs: [init, download]
     uses: ./.github/workflows/make.yml
     secrets: inherit
