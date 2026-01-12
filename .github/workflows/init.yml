@@ -19,7 +19,7 @@ jobs:
       uses: actions/cache@v4
       with:
         key: recalbox-${{ inputs.tag }}
-        path: recalbox-${{ inputs.tag }}.zfs.zst
+        path: ${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst
     - name: "Remove swap"
       if: steps.cache-recalbox.outputs.cache-hit != 'true'
       uses: endersonmenezes/free-disk-space@v3
@@ -45,12 +45,12 @@ jobs:
         docker build --tag recalbox /mnt/recalbox/
         docker save --output /mnt/recalbox.tar recalbox
         sudo zfs snapshot mnt@init
-        sudo zfs send mnt@init | zstd -o "recalbox-${{ inputs.tag }}.zfs.zst"
+        sudo zfs send mnt@init | zstd -o "${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst"
     - name: "Upload Recalbox"
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-${{ inputs.tag }}
-        path: recalbox-${{ inputs.tag }}.zfs.zst
+        path: ${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst
         compression-level: 0
     - name: "Create release"
       if: inputs.release != ''
