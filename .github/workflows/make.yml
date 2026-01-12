@@ -72,9 +72,9 @@ jobs:
     - name: "Import Recalbox"
       run: |
         set -x
-        sudo zfs receive -F mnt < "recalbox-${{ inputs.tag }}.zfs"
+        zstdcat "recalbox-${{ inputs.tag }}.zfs.zst" | sudo zfs receive -F mnt
         sudo zfs destroy mnt@%
-        rm "recalbox-${{ inputs.tag }}.zfs"
+        rm "recalbox-${{ inputs.tag }}.zfs.zst"
     - name: "Load Docker image"
       run: |
         docker load --input /mnt/recalbox.tar
@@ -196,11 +196,11 @@ jobs:
     - name: "Export Recalbox"
       run: |
         sudo zfs snapshot "mnt@make-${{ job.check_run_id }}"
-        sudo zfs send "mnt@make-${{ job.check_run_id }}" > "recalbox-${{ inputs.tag }}.zfs"
+        sudo zfs send "mnt@make-${{ job.check_run_id }}" | zstd -o "recalbox-${{ inputs.tag }}.zfs.zst"
     - name: "Upload Recalbox"
       uses: actions/upload-artifact@v4
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
-        path: recalbox-${{ inputs.tag }}.zfs
+        path: recalbox-${{ inputs.tag }}.zfs.zst
         compression-level: 0
         overwrite: true
