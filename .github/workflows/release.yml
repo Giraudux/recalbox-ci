@@ -31,7 +31,7 @@ jobs:
     needs: tag
     uses: ./.github/workflows/init.yml
     with:
-      tag: ${{ inputs.tag }}
+      tag: ${{ needs.tag.outputs.tag }}
       release: ${{ needs.tag.outputs.tag }}
   build:
     needs: [init, tag]
