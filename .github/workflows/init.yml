@@ -53,6 +53,7 @@ jobs:
         path: ${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst
         compression-level: 0
     - name: "Create release"
+      continue-on-error: true
       if: inputs.release != ''
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
