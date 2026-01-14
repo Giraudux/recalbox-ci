@@ -27,6 +27,14 @@ jobs:
         else
             echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
         fi
+    - name: "Create release"
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        wget --directory-prefix="${{ runner.temp }}" "https://gitlab.com/recalbox/recalbox/-/raw/${{ inputs.tag }}/RELEASE-NOTES.md"
+        gh release create "${{ steps.tag.outputs.tag }}" --notes-file="${{ runner.temp }}/RELEASE-NOTES.md"
+
   init:
     needs: tag
     uses: ./.github/workflows/init.yml

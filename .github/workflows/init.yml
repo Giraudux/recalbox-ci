@@ -6,12 +6,20 @@ on:
       tag:
         required: true
         type: string
-      release:
-        default: ''
+      arch:
+        required: true
         type: string
+      ccache:
+        type: boolean
+        default: true
+      remote_storage:
+        type: boolean
+        default: true
 
 jobs:
   init:
+    concurrency:
+      group: lock-cache
     runs-on: ubuntu-latest
     steps:
     - name: "Cache Recalbox"
@@ -26,7 +34,7 @@ jobs:
       with:
         remove_swap: true
     - name: "Checkout patches"
-      if: steps.cache-recalbox.outputs.cache-hit != 'true' || inputs.release != ''
+      if: steps.cache-recalbox.outputs.cache-hit != 'true'
       uses: actions/checkout@v6
     - name: "Create Recalbox"
       if: steps.cache-recalbox.outputs.cache-hit != 'true'
@@ -49,14 +57,25 @@ jobs:
     - name: "Upload Recalbox"
       uses: actions/upload-artifact@v4
       with:
-        name: recalbox-${{ inputs.tag }}
+        name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
         path: ${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst
         compression-level: 0
-    - name: "Create release"
+  download:
+    if: inputs.remote_storage
+    concurrency:
+      group: lock-remote-storage
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - id: download-ccache
+      if: inputs.ccache
       continue-on-error: true
-      if: inputs.release != ''
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        wget --directory-prefix="${{ runner.temp }}" "https://gitlab.com/recalbox/recalbox/-/raw/${{ inputs.tag }}/RELEASE-NOTES.md"
-        gh release create "${{ inputs.release }}" --notes-file="${{ runner.temp }}/RELEASE-NOTES.md"
+        echo "::add-mask::${{ secrets.MASK_0 }}"
+        wget --quiet "${{ secrets.BR2_BACKUP_SITE }}/ccache/recalbox-${{ inputs.arch }}-ccache.tar.zst"
+    - uses: actions/upload-artifact@v4
+      if: inputs.ccache && steps.download-ccache.outcome == 'success'
+      with:
+        name: recalbox-${{ inputs.arch }}-ccache
+        path: recalbox-${{ inputs.arch }}-ccache.tar.zst
+        compression-level: 0

@@ -12,7 +12,7 @@ on:
       timeout:
         type: number
         default: 14400 # 4 hours
-      build_extra_args:
+      extra_args:
         type: string
         default: ''
       ccache:
@@ -21,18 +21,20 @@ on:
       ccache_size:
         type: number
         default: 8
-      release:
-        type: string
-        default: ''
+      remote_storage:
+        type: boolean
+        default: true
     outputs:
       status:
-        value: ${{ jobs.build.outputs.status }}
+        value: ${{ jobs.make.outputs.status }}
 
 jobs:
-  build:
+  make:
+    concurrency:
+      group: lock-make-${{ inputs.arch }}
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.build.outputs.status }}
+      status: ${{ steps.make.outputs.status }}
     steps:
     - name: "Install dependencies"
       run: |
@@ -59,16 +61,9 @@ jobs:
         sudo umount /mnt/
         sudo zpool create -O compression=zstd mnt "$device"
     - name: "Download Recalbox"
-      id: download-recalbox
-      continue-on-error: true
       uses: actions/download-artifact@v5
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
-    - name: "Download Recalbox"
-      if: steps.download-recalbox.outcome != 'success'
-      uses: actions/download-artifact@v5
-      with:
-        name: recalbox-${{ inputs.tag }}
     - name: "Import Recalbox"
       run: |
         set -x
@@ -108,8 +103,8 @@ jobs:
         df -h
         du -hs ccache/ dl/ /mnt/*
         CCACHE_DIR="${{ github.workspace }}/ccache" ccache -s
-    - name: "Build"
-      id: build
+    - name: "Make"
+      id: make
       run: |
         echo "::add-mask::${{ secrets.MASK_0 }}"
         set -x
@@ -127,7 +122,7 @@ jobs:
           --env "ARCH=${{ inputs.arch }}" \
           --env "RECALBOX_VERSION=${{ inputs.tag }}" \
           --env "FORCE_UNSAFE_CONFIGURE=1" \
-          --env "PACKAGE=BR2_BACKUP_SITE=\"${{ secrets.BR2_BACKUP_SITE }}\" ${{ inputs.build_extra_args }}" \
+          --env "PACKAGE=BR2_BACKUP_SITE=\"${{ secrets.BR2_BACKUP_SITE }}\" ${{ inputs.extra_args }}" \
           --env "RECALBOX_CCACHE_ENABLED=${{ inputs.ccache && 'y' || '' }}" \
           --env "RECALBOX_CCACHE_MAX_SIZE=${{ inputs.ccache_size }}G" \
           --user "$(id --user):$(id --group)" \
@@ -154,18 +149,12 @@ jobs:
         du -hs ccache/ dl/ /mnt/*
         CCACHE_DIR="${{ github.workspace }}/ccache" ccache -s
     - name: "Upload images"
-      if: steps.build.outputs.status == 'success'
+      if: steps.make.outputs.status == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: image-${{ inputs.arch }}
         path: /mnt/output/images/recalbox/*.img.xz*
         compression-level: 0
-    - name: "Upload release"
-      if: steps.build.outputs.status == 'success' && inputs.release != ''
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release upload --clobber "${{ inputs.release }}" /mnt/output/images/*
     - name: "Compress ccache"
       run: |
         tar --remove-files -caf recalbox-${{ inputs.arch }}-ccache.tar.zst ccache/
@@ -204,3 +193,37 @@ jobs:
         path: recalbox-${{ inputs.tag }}.zfs.zst
         compression-level: 0
         overwrite: true
+  cancel:
+    needs: make
+    if: needs.make.outputs.status != 'continue'
+    runs-on: ubuntu-slim
+    concurrency:
+      group: lock-make-${{ inputs.arch }}
+      cancel-in-progress: true
+  upload:
+    if: inputs.remote_storage
+    needs: make
+    concurrency:
+      group: lock-remote-storage
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - run: |
+        gpg --decrypt --batch --passphrase="${{ secrets.REMOTE_STORAGE_GPG_PASSPHRASE }}" --output=bin/remote-storage bin/remote-storage.gpg
+        chmod +x bin/remote-storage
+    - uses: actions/download-artifact@v5
+      with:
+        name: recalbox-${{ inputs.arch }}-dl
+        path: dl/
+    - run: |
+        cd dl/
+        echo "::add-mask::${{ secrets.MASK_0 }}"
+        find . -maxdepth 2 -type f -exec sh -c 'wget --quiet --spider "${{ secrets.BR2_BACKUP_SITE }}/$1" || "${{ github.workspace }}/bin/remote-storage" upload "$1"' shell {} \;
+        rm -r dl/
+    - uses: actions/download-artifact@v5
+      with:
+        name: recalbox-${{ inputs.arch }}-ccache
+    - run: |
+        echo "::add-mask::${{ secrets.MASK_0 }}"
+        "${{ github.workspace }}/bin/remote-storage" upload "recalbox-${{ inputs.arch }}-ccache.tar.zst"
+        rm "recalbox-${{ inputs.arch }}-ccache.tar.zst"

@@ -9,18 +9,6 @@ on:
       arch:
         required: true
         type: string
-      build_extra_args:
-        type: string
-        default: ""
-      remote_storage:
-        type: boolean
-        default: true
-      release:
-        type: string
-        default: ''
-      init:
-        type: boolean
-        default: false
   workflow_dispatch:
     inputs:
       tag:
@@ -33,141 +21,29 @@ on:
         default: 'rpi5_64'
         required: true
         type: string
-      build_extra_args:
-        description: "Build extra args"
-        type: string
-        default: ""
-      remote_storage:
-        description: "Use remote storage"
-        type: boolean
-        default: true
-      release:
-        description: "Create and upload release"
-        default: ''
-        type: string
-      init:
-        description: "Run init"
-        type: boolean
-        default: true
 
 jobs:
   init:
-    if: inputs.init
     uses: ./.github/workflows/init.yml
-    with:
-      tag: ${{ inputs.tag }}
-      release: ${{inputs.release }}
-  download:
-    if: inputs.remote_storage
-    uses: ./.github/workflows/download.yml
     secrets: inherit
     with:
+      tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-  make1:
-    if: always() && (needs.init.result == 'success' || needs.init.result == 'skipped')
-    needs: [init, download]
+  make:
+    name: make${{ matrix.id }}
+    strategy:
+      fail-fast: true
+      matrix:
+        id: [1, 2, 3, 4, 5, 6]
+    needs: init
     uses: ./.github/workflows/make.yml
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       arch: ${{ inputs.arch }}
-      build_extra_args: ${{ inputs.build_extra_args }}
-      release: ${{inputs.release }}
-  upload1:
-    needs: make1
-    if: inputs.remote_storage
-    uses: ./.github/workflows/upload.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-  make2:
-    needs: make1
-    if: needs.make1.outputs.status == 'continue'
-    uses: ./.github/workflows/make.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-      build_extra_args: ${{ inputs.build_extra_args }}
-      release: ${{inputs.release }}
-  upload2:
-    needs: [make2, upload1]
-    if: inputs.remote_storage
-    uses: ./.github/workflows/upload.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-  make3:
-    needs: make2
-    if: needs.make2.outputs.status == 'continue'
-    uses: ./.github/workflows/make.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-      build_extra_args: ${{ inputs.build_extra_args }}
-      release: ${{inputs.release }}
-  upload3:
-    needs: [make3, upload2]
-    if: inputs.remote_storage
-    uses: ./.github/workflows/upload.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-  make4:
-    needs: make3
-    if: needs.make3.outputs.status == 'continue'
-    uses: ./.github/workflows/make.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-      build_extra_args: ${{ inputs.build_extra_args }}
-      release: ${{inputs.release }}
-  upload4:
-    needs: [make4, upload3]
-    if: inputs.remote_storage
-    uses: ./.github/workflows/upload.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-  make5:
-    needs: make4
-    if: needs.make4.outputs.status == 'continue'
-    uses: ./.github/workflows/make.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-      build_extra_args: ${{ inputs.build_extra_args }}
-      release: ${{inputs.release }}
-  upload5:
-    needs: [make5, upload4]
-    if: inputs.remote_storage
-    uses: ./.github/workflows/upload.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-  make6:
-    needs: make5
-    if: needs.make5.outputs.status == 'continue'
-    uses: ./.github/workflows/make.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
-      build_extra_args: ${{ inputs.build_extra_args }}
-      release: ${{inputs.release }}
-  upload6:
-    needs: [make6, upload5]
-    if: inputs.remote_storage
-    uses: ./.github/workflows/upload.yml
-    secrets: inherit
-    with:
-      tag: ${{ inputs.tag }}
-      arch: ${{ inputs.arch }}
+  status:
+    if: needs.make.outputs.status != 'success'
+    runs-on: ubuntu-slim
+    needs: make
+    steps:
+    - run: false
