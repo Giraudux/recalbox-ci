@@ -200,6 +200,8 @@ jobs:
     concurrency:
       group: lock-make-${{ inputs.arch }}
       cancel-in-progress: true
+    steps:
+    - run: true
   upload:
     if: inputs.remote_storage
     needs: make
