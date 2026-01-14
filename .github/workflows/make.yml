@@ -31,7 +31,7 @@ on:
 jobs:
   make:
     concurrency:
-      group: lock-make-${{ inputs.arch }}
+      group: lock-make-${{ inputs.arch }}-${{ github.run_id }}
     runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.make.outputs.status }}
@@ -198,7 +198,7 @@ jobs:
     if: needs.make.outputs.status != 'continue'
     runs-on: ubuntu-slim
     concurrency:
-      group: lock-make-${{ inputs.arch }}
+      group: lock-make-${{ inputs.arch }}-${{ github.run_id }}
       cancel-in-progress: true
     steps:
     - run: true
@@ -222,11 +222,10 @@ jobs:
       continue-on-error: true
       run: |
         echo "::add-mask::${{ secrets.MASK_0 }}"
-        (
-          cd dl/
-          &&
-          find . -maxdepth 2 -type f -exec sh -c 'wget --quiet --spider "${{ secrets.BR2_BACKUP_SITE }}/$1" || "${{ github.workspace }}/bin/remote-storage" upload "$1"' shell {} \;
-        )
+        (cd dl/ && find . -maxdepth 2 -type f -exec sh -c 'wget --quiet --spider "${{ secrets.BR2_BACKUP_SITE }}/$1" || "${{ github.workspace }}/bin/remote-storage" upload "$1"' shell {} \;)
+    - name: "Cleanup dl"
+      continue-on-error: true
+      run: |
         rm -r dl/
     - uses: actions/download-artifact@v5
       with:
@@ -236,4 +235,7 @@ jobs:
       run: |
         echo "::add-mask::${{ secrets.MASK_0 }}"
         "${{ github.workspace }}/bin/remote-storage" upload "recalbox-${{ inputs.arch }}-ccache.tar.zst"
+    - name: "Cleanup ccache"
+      continue-on-error: true
+      run: |
         rm "recalbox-${{ inputs.arch }}-ccache.tar.zst"
