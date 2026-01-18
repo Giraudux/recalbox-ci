@@ -145,10 +145,11 @@ jobs:
       continue-on-error: true
       run: |
         set -x +e
-        ls -lh . /mnt
+        ls -lh . /mnt/
         df -h
         du -hs ccache/ dl/ /mnt/*
         CCACHE_DIR="${{ github.workspace }}/ccache" ccache -s
+        ls -lh /mnt/output/images/recalbox/
     - name: "Upload images"
       if: steps.make.outputs.status == 'success' && ! inputs.release
       uses: actions/upload-artifact@v4
