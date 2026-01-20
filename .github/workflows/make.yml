@@ -162,7 +162,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release upload --clobber "${{ inputs.tag }}" /mnt/output/images/*
+        gh release upload --clobber "${{ inputs.tag }}" /mnt/output/images/recalbox/*
     - name: "Compress ccache"
       run: |
         tar --remove-files -caf ccache-${{ inputs.arch }}.tar.zst ccache/
