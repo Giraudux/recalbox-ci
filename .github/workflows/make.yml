@@ -37,6 +37,8 @@ jobs:
     outputs:
       status: ${{ steps.make.outputs.status }}
     steps:
+    - uses: actions/checkout@v6
+      if: inputs.release
     - name: "Install dependencies"
       run: |
         sudo apt update
@@ -155,14 +157,14 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: image-${{ inputs.arch }}
-        path: /mnt/output/images/recalbox/*
+        path: /mnt/output/images/recalbox/*.img*
         compression-level: 0
     - name: "Release images"
       if: steps.make.outputs.status == 'success' && inputs.release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release upload --clobber "${{ inputs.tag }}" /mnt/output/images/recalbox/*
+        gh release upload --clobber "${{ inputs.tag }}" /mnt/output/images/recalbox/*.img*
     - name: "Compress ccache"
       run: |
         tar --remove-files -caf ccache-${{ inputs.arch }}.tar.zst ccache/
