@@ -11,7 +11,7 @@ on:
         type: string
       ccache:
         type: boolean
-        default: true
+        default: false
       remote_storage:
         type: boolean
         default: true

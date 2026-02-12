@@ -17,7 +17,7 @@ on:
         default: ''
       ccache:
         type: boolean
-        default: true
+        default: false
       ccache_size:
         type: number
         default: 8
@@ -166,9 +166,11 @@ jobs:
       run: |
         gh release upload --clobber "${{ inputs.tag }}" /mnt/output/images/recalbox/*.img*
     - name: "Compress ccache"
+      if: inputs.ccache
       run: |
         tar --remove-files -caf ccache-${{ inputs.arch }}.tar.zst ccache/
     - name: "Upload ccache"
+      if: inputs.ccache
       uses: actions/upload-artifact@v4
       with:
         name: ccache-${{ inputs.arch }}
@@ -229,14 +231,17 @@ jobs:
       run: |
         rm -r dl/
     - uses: actions/download-artifact@v5
+      if: inputs.ccache
       with:
         name: ccache-${{ inputs.arch }}
     - name: "Upload ccache"
+      if: inputs.ccache
       continue-on-error: true
       run: |
         echo "::add-mask::${{ secrets.MASK_0 }}"
         "${{ github.workspace }}/bin/remote-storage" upload "ccache-${{ inputs.arch }}.tar.zst"
     - name: "Cleanup ccache"
+      if: inputs.ccache
       continue-on-error: true
       run: |
         rm "ccache-${{ inputs.arch }}.tar.zst"
