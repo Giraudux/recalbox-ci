@@ -60,7 +60,7 @@ jobs:
     - name: "Create ZFS"
       run: |
         set -x
-        readonly device=$(lsblk --noheadings --paths --output NAME "$(findmnt --noheadings --output SOURCE /mnt/)")
+        readonly device=$(lsblk --noheadings --paths --output PKNAME "$(findmnt --noheadings --output SOURCE /mnt/)")
         sudo umount /mnt/
         sudo zpool create -O compression=zstd mnt "$device"
     - name: "Download Recalbox"
