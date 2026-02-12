@@ -61,7 +61,8 @@ jobs:
       run: |
         set -x
         readonly device=$(lsblk --noheadings --paths --output PKNAME "$(findmnt --noheadings --output SOURCE /mnt/)")
-        sudo umount /mnt/
+        [ -b "$device" ]
+        sudo umount --quiet /mnt/
         sudo zpool create -O compression=zstd mnt "$device"
     - name: "Download Recalbox"
       uses: actions/download-artifact@v5
