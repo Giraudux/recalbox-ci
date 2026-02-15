@@ -60,9 +60,10 @@ jobs:
     - name: "Create ZFS"
       run: |
         set -x
-        device=$(lsblk --noheadings --paths --output PKNAME "$(findmnt --noheadings --output SOURCE /mnt/)")
+        device=$(findmnt --noheadings --output SOURCE /mnt/)
         if [ -b "$device" ]
         then
+          device=$(lsblk --noheadings --paths --output PKNAME "$device")
           sudo umount --quiet "$device"*
         else
           device=${{ runner.temp }}/mnt.raw
