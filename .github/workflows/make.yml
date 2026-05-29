@@ -70,7 +70,7 @@ jobs:
         fi
         sudo zpool create -O compression=zstd mnt "$device"
     - name: "Download Recalbox"
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
     - name: "Import Recalbox"
@@ -86,7 +86,7 @@ jobs:
       if: inputs.ccache
       id: download-ccache
       continue-on-error: true
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: ccache-${{ inputs.arch }}
     - name: "Extract & cleanup ccache"
@@ -160,7 +160,7 @@ jobs:
         ls -lh /mnt/output/images/recalbox/
     - name: "Upload images"
       if: steps.make.outputs.status == 'success' && ! inputs.release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: image-${{ inputs.arch }}
         path: /mnt/output/images/recalbox/*.img*
@@ -177,7 +177,7 @@ jobs:
         tar --remove-files -caf ccache-${{ inputs.arch }}.tar.zst ccache/
     - name: "Upload ccache"
       if: inputs.ccache
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ccache-${{ inputs.arch }}
         path: ccache-${{ inputs.arch }}.tar.zst
@@ -191,7 +191,7 @@ jobs:
       run: |
         find dl/ -mindepth 2 -maxdepth 2 -type d -exec rm -rf "{}" \;
     - name: "Upload dl"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: dl-${{ inputs.arch }}
         path: dl/
@@ -205,7 +205,7 @@ jobs:
         sudo zfs snapshot "mnt@make-${{ job.check_run_id }}"
         sudo zfs send "mnt@make-${{ job.check_run_id }}" | zstd --fast -o "recalbox-${{ inputs.tag }}.zfs.zst"
     - name: "Upload Recalbox"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
         path: recalbox-${{ inputs.tag }}.zfs.zst
@@ -223,7 +223,7 @@ jobs:
       run: |
         gpg --decrypt --batch --passphrase="${{ secrets.REMOTE_STORAGE_GPG_PASSPHRASE }}" --output=bin/remote-storage bin/remote-storage.gpg
         chmod +x bin/remote-storage
-    - uses: actions/download-artifact@v5
+    - uses: actions/download-artifact@v8
       with:
         name: dl-${{ inputs.arch }}
         path: dl/
@@ -236,7 +236,7 @@ jobs:
       continue-on-error: true
       run: |
         rm -r dl/
-    - uses: actions/download-artifact@v5
+    - uses: actions/download-artifact@v8
       if: inputs.ccache
       with:
         name: ccache-${{ inputs.arch }}
