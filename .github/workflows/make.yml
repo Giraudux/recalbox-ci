@@ -61,6 +61,7 @@ jobs:
       uses: actions/download-artifact@v8
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
+        path: recalbox-${{ inputs.tag }}
     - name: "Load Docker image"
       run: |
         docker load --input recalbox-${{ inputs.tag }}/recalbox.tar
