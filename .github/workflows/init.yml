@@ -20,6 +20,11 @@ jobs:
   init:
     runs-on: ubuntu-latest
     steps:
+    - name: "Debug"
+      run: |
+        set -x
+        df
+        lsblk
     - name: "Cache Recalbox"
       id: cache-recalbox
       uses: actions/cache@v5
