@@ -37,10 +37,10 @@ jobs:
     - name: "Create Recalbox"
       if: steps.cache-recalbox.outputs.cache-hit != 'true'
       run: |
+        set -x
         mkdir --parents recalbox-${{ inputs.tag }}/output/build/.npm/
         git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git recalbox-${{ inputs.tag }}/recalbox/
         git -C recalbox-${{ inputs.tag }}/recalbox/ apply "${{ github.workspace }}/patch/docker-ccache.patch"
-        git -C recalbox-${{ inputs.tag }}/recalbox/ apply "${{ github.workspace }}/patch/recalbox-themes.patch"
         docker build --tag recalbox recalbox-${{ inputs.tag }}/recalbox/
         docker save --output recalbox-${{ inputs.tag }}/recalbox.tar recalbox
     - name: "Upload Recalbox"
