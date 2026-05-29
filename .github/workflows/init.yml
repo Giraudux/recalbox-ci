@@ -20,17 +20,12 @@ jobs:
   init:
     runs-on: ubuntu-latest
     steps:
-    - name: "Debug"
-      run: |
-        set -x
-        df
-        lsblk
     - name: "Cache Recalbox"
       id: cache-recalbox
       uses: actions/cache@v5
       with:
         key: recalbox-${{ inputs.tag }}
-        path: ${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst
+        path: recalbox-${{ inputs.tag }}
     - name: "Remove swap"
       if: steps.cache-recalbox.outputs.cache-hit != 'true'
       uses: endersonmenezes/free-disk-space@v3
@@ -42,26 +37,17 @@ jobs:
     - name: "Create Recalbox"
       if: steps.cache-recalbox.outputs.cache-hit != 'true'
       run: |
-        set -x
-        sudo apt update
-        sudo apt install --yes zfsutils-linux
-        readonly device=/dev/$(lsblk --noheadings --output PKNAME "$(findmnt --noheadings --output SOURCE /mnt/)")
-        sudo umount /mnt/
-        sudo zpool create -O compression=zstd mnt "$device"
-        sudo chown "$USER:$USER" /mnt/
-        mkdir --parents /mnt/output/build/.npm/
-        git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git /mnt/recalbox/
-        git -C /mnt/recalbox/ apply "${{ github.workspace }}/patch/docker-ccache.patch"
-        git -C /mnt/recalbox/ apply "${{ github.workspace }}/patch/recalbox-themes.patch"
-        docker build --tag recalbox /mnt/recalbox/
-        docker save --output /mnt/recalbox.tar recalbox
-        sudo zfs snapshot mnt@init
-        sudo zfs send mnt@init | zstd -o "${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst"
+        mkdir --parents recalbox-${{ inputs.tag }}/output/build/.npm/
+        git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git recalbox-${{ inputs.tag }}/recalbox/
+        git -C recalbox-${{ inputs.tag }}/recalbox/ apply "${{ github.workspace }}/patch/docker-ccache.patch"
+        git -C recalbox-${{ inputs.tag }}/recalbox/ apply "${{ github.workspace }}/patch/recalbox-themes.patch"
+        docker build --tag recalbox recalbox-${{ inputs.tag }}/recalbox/
+        docker save --output recalbox-${{ inputs.tag }}/recalbox.tar recalbox
     - name: "Upload Recalbox"
       uses: actions/upload-artifact@v7
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
-        path: ${{ runner.temp }}/recalbox-${{ inputs.tag }}.zfs.zst
+        path: recalbox-${{ inputs.tag }}
         compression-level: 0
   download:
     if: inputs.remote_storage

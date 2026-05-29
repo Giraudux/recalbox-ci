@@ -42,7 +42,7 @@ jobs:
     - name: "Install dependencies"
       run: |
         sudo apt update
-        sudo apt install --yes ccache zfsutils-linux
+        sudo apt install --yes ccache
     - name: "Free disk space"
       uses: endersonmenezes/free-disk-space@v3
       with:
@@ -57,31 +57,13 @@ jobs:
         rm_cmd: "rmz"
         rmz_version: "3.1.1"
         testing: false
-    - name: "Create ZFS"
-      run: |
-        set -x
-        if device=$(findmnt --noheadings --output SOURCE /mnt/) && [ -b "$device" ]
-        then
-          device=$(lsblk --noheadings --paths --output PKNAME "$device")
-          sudo umount --quiet "$device"* || true
-        else
-          device=${{ runner.temp }}/mnt.raw
-          truncate -s 70G "$device"
-        fi
-        sudo zpool create -O compression=zstd mnt "$device"
     - name: "Download Recalbox"
       uses: actions/download-artifact@v8
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
-    - name: "Import Recalbox"
-      run: |
-        set -x
-        zstdcat "recalbox-${{ inputs.tag }}.zfs.zst" | sudo zfs receive -F mnt
-        sudo zfs destroy mnt@%
-        rm "recalbox-${{ inputs.tag }}.zfs.zst"
     - name: "Load Docker image"
       run: |
-        docker load --input /mnt/recalbox.tar
+        docker load --input recalbox-${{ inputs.tag }}/recalbox.tar
     - name: "Download ccache"
       if: inputs.ccache
       id: download-ccache
@@ -108,9 +90,9 @@ jobs:
       continue-on-error: true
       run: |
         set -x +e
-        ls -lh . /mnt
+        ls -lh . recalbox-${{ inputs.tag }}
         df -h
-        du -hs ccache/ dl/ /mnt/*
+        du -hs ccache/ dl/ recalbox-${{ inputs.tag }}/*
         CCACHE_DIR="${{ github.workspace }}/ccache" ccache -s
     - name: "Make"
       id: make
@@ -123,9 +105,9 @@ jobs:
         (sleep "$timeout_sec" ; docker exec --user root recalbox sh -c "chmod -x /usr/bin/make") &
         if docker run --rm --security-opt seccomp=unconfined \
           --name recalbox \
-          --volume "/mnt/recalbox/:/work/" \
-          --volume "/mnt/output/:/work/output/" \
-          --volume "/mnt/output/build/.npm/:/.npm/" \
+          --volume "recalbox-${{ inputs.tag }}/recalbox/:/work/" \
+          --volume "recalbox-${{ inputs.tag }}/output/:/work/output/" \
+          --volume "recalbox-${{ inputs.tag }}/output/build/.npm/:/.npm/" \
           --volume "${{ github.workspace }}/dl/:/share/dl/" \
           --volume "${{ github.workspace }}/ccache/:/share/ccache" \
           --env "ARCH=${{ inputs.arch }}" \
@@ -153,24 +135,24 @@ jobs:
       continue-on-error: true
       run: |
         set -x +e
-        ls -lh . /mnt/
+        ls -lh . recalbox-${{ inputs.tag }}/
         df -h
-        du -hs ccache/ dl/ /mnt/*
+        du -hs ccache/ dl/ recalbox-${{ inputs.tag }}/*
         CCACHE_DIR="${{ github.workspace }}/ccache" ccache -s
-        ls -lh /mnt/output/images/recalbox/
+        ls -lh recalbox-${{ inputs.tag }}/output/images/recalbox/
     - name: "Upload images"
       if: steps.make.outputs.status == 'success' && ! inputs.release
       uses: actions/upload-artifact@v7
       with:
         name: image-${{ inputs.arch }}
-        path: /mnt/output/images/recalbox/*.img*
+        path: recalbox-${{ inputs.tag }}/output/images/recalbox/*.img*
         compression-level: 0
     - name: "Release images"
       if: steps.make.outputs.status == 'success' && inputs.release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release upload --clobber "${{ inputs.tag }}" /mnt/output/images/recalbox/*.img*
+        gh release upload --clobber "${{ inputs.tag }}" recalbox-${{ inputs.tag }}/output/images/recalbox/*.img*
     - name: "Compress ccache"
       if: inputs.ccache
       run: |
@@ -200,15 +182,11 @@ jobs:
     - name: "Clear dl"
       run: |
         rm -rf dl/
-    - name: "Export Recalbox"
-      run: |
-        sudo zfs snapshot "mnt@make-${{ job.check_run_id }}"
-        sudo zfs send "mnt@make-${{ job.check_run_id }}" | zstd --fast -o "recalbox-${{ inputs.tag }}.zfs.zst"
     - name: "Upload Recalbox"
       uses: actions/upload-artifact@v7
       with:
         name: recalbox-${{ inputs.tag }}-${{ inputs.arch }}
-        path: recalbox-${{ inputs.tag }}.zfs.zst
+        path: recalbox-${{ inputs.tag }}
         compression-level: 0
         overwrite: true
   upload:
