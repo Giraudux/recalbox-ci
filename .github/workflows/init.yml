@@ -38,10 +38,10 @@ jobs:
       if: steps.cache-recalbox.outputs.cache-hit != 'true'
       run: |
         set -x
-        mkdir --parents recalbox-${{ inputs.tag }}/output/build/.npm/
-        git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git recalbox-${{ inputs.tag }}/recalbox/
-        docker build --tag recalbox recalbox-${{ inputs.tag }}/recalbox/
-        docker save --output recalbox-${{ inputs.tag }}/recalbox.tar recalbox
+        mkdir --parents "recalbox-${{ inputs.tag }}/output/build/.npm/"
+        git clone --depth 1 --shallow-submodules --recurse-submodules --branch "${{ inputs.tag }}" https://gitlab.com/recalbox/recalbox.git "recalbox-${{ inputs.tag }}/recalbox/"
+        docker build --tag recalbox "recalbox-${{ inputs.tag }}/recalbox/"
+        docker save --output "recalbox-${{ inputs.tag }}/recalbox.tar" recalbox
       # git -C recalbox-${{ inputs.tag }}/recalbox/ apply "${{ github.workspace }}/patch/docker-ccache.patch"
     - name: "Upload Recalbox"
       uses: actions/upload-artifact@v7

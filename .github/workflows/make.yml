@@ -91,9 +91,9 @@ jobs:
       continue-on-error: true
       run: |
         set -x +e
-        ls -lh . recalbox-${{ inputs.tag }}
+        ls -lh . "recalbox-${{ inputs.tag }}"
         df -h
-        du -hs ccache/ dl/ recalbox-${{ inputs.tag }}/*
+        du -hs ccache/ dl/ "recalbox-${{ inputs.tag }}/"*
         CCACHE_DIR="${{ github.workspace }}/ccache" ccache -s
     - name: "Make"
       id: make
@@ -104,8 +104,9 @@ jobs:
         current_time_sec=$(date +%s)
         end_time_sec=$((current_time_sec + timeout_sec))
         (sleep "$timeout_sec" ; docker exec --user root recalbox sh -c "chmod -x /usr/bin/make") &
-        if docker run --rm --security-opt seccomp=unconfined \
+        if docker run --rm --tmpfs /tmp:exec --security-opt seccomp=unconfined \
           --name recalbox \
+          --workdir "${{ github.workspace }}/recalbox-${{ inputs.tag }}/recalbox/" \
           --volume "${{ github.workspace }}/recalbox-${{ inputs.tag }}/recalbox/:/work/" \
           --volume "${{ github.workspace }}/recalbox-${{ inputs.tag }}/output/:/work/output/" \
           --volume "${{ github.workspace }}/recalbox-${{ inputs.tag }}/output/build/.npm/:/.npm/" \
@@ -136,9 +137,9 @@ jobs:
       continue-on-error: true
       run: |
         set -x +e
-        ls -lh . recalbox-${{ inputs.tag }}/
+        ls -lh . "recalbox-${{ inputs.tag }}/"
         df -h
-        du -hs ccache/ dl/ recalbox-${{ inputs.tag }}/*
+        du -hs ccache/ dl/ "recalbox-${{ inputs.tag }}/"*
         CCACHE_DIR="${{ github.workspace }}/ccache" ccache -s
         ls -lh recalbox-${{ inputs.tag }}/output/images/recalbox/
     - name: "Upload images"
@@ -153,7 +154,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release upload --clobber "${{ inputs.tag }}" recalbox-${{ inputs.tag }}/output/images/recalbox/*.img*
+        gh release upload --clobber "${{ inputs.tag }}" "recalbox-${{ inputs.tag }}/output/images/recalbox/"*.img*
     - name: "Compress ccache"
       if: inputs.ccache
       run: |
